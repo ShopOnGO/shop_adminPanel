@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+option go_package = "./service";
+
+// Роли пользователей
+enum UserRole {
+    USER_ROLE_BUYER = 0;
+    USER_ROLE_SELLER = 1;
+    USER_ROLE_ADMIN = 2;
+}
+
+message ErrorResponse {
+    int32 code = 1; // Например, 200 — успех, num — ошибка
+    string message = 2;
+}
+message Model {
+    uint32 id = 1;
+    google.protobuf.Timestamp created_at = 2;
+    google.protobuf.Timestamp updated_at = 3;
+    google.protobuf.Timestamp deleted_at = 4;
+}
+
+// Сезонность товара
+enum ProductSeason {
+    PRODUCT_SEASON_UNSPECIFIED = 0;
+    PRODUCT_SEASON_ALL_SEASON = 1;
+    PRODUCT_SEASON_WINTER = 2;
+    PRODUCT_SEASON_SPRING = 3;
+    PRODUCT_SEASON_SUMMER = 4;
+    PRODUCT_SEASON_AUTUMN = 5;
+}
+
+// Пол товара
+enum ProductGender {
+    PRODUCT_GENDER_UNSPECIFIED = 0;
+    PRODUCT_GENDER_UNISEX = 1;
+    PRODUCT_GENDER_MALE = 2;
+    PRODUCT_GENDER_FEMALE = 3;
+}
+
+message Category {
+    Model model = 1;
+    string name = 2;
+    string description = 3;
+    string image_url = 4;
+}
+message Product {
+    Model model = 1;
+    string name = 2;
+    string description = 3;
+    uint32 category_id = 4;
+    uint32 brand_id = 5;
+    float discount = 6;
+    int32 stock = 7;
+    bool is_available = 8;
+    string size = 9;
+    string color = 10;
+    string material = 11;
+    ProductGender gender = 12;
+    ProductSeason season = 13;
+    string video_url = 14;
+    string gallery = 15;
+    float rating = 16;
+    int32 reviews_count = 17;
+}
+message User {
+    Model model = 1;
+    string email = 2;
+    string name = 3;
+    UserRole role = 4;
+}
+message Brand {
+    Model model = 1;
+    string name = 2;
+    string description = 3;
+    string video_url = 4;
+    string logo = 5;
+}
+message Link {
+    Model model = 1;
+    string url = 2;
+    string hash = 3;
+}
+
+message ID {
+    uint64 id = 1;
+  }
+
+message Error {
+    ErrorResponse error = 1;
+}

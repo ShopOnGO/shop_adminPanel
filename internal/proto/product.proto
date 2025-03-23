@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package proto;
+
+import "entities.proto";
+option go_package = "./service";
+
+service ProductService {
+  rpc CreateProduct (Product) returns (ProductResponse);
+  rpc GetProductsByCategory (CategoryRequest) returns (ProductList);
+  rpc GetProductsByName (NameRequest) returns (ProductList);
+  rpc GetFeaturedProducts (FeaturedRequest) returns (ProductList);
+  rpc UpdateProduct (Product) returns (ProductResponse);
+  rpc DeleteProduct (DeleteProductRequest) returns (Error);
+}
+
+
+message ProductResponse {
+  Product product = 1;
+  ErrorResponse error = 2;
+}
+
+message ProductList {
+  repeated Product products = 1;
+  ErrorResponse error = 2;
+
+}
+
+message CategoryRequest {
+  uint64 category_id = 1;
+}
+
+message NameRequest {
+  string name = 1;
+}
+
+message FeaturedRequest {
+  uint32 amount = 1;
+  bool random = 2;
+  bool include_deleted = 3;
+}
+
+message DeleteProductRequest {
+  uint64 id = 1;
+  bool Unscoped = 2;
+}

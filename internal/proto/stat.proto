@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "./service";
+service StatService {
+  rpc AddClick (ClickRequest) returns (ClickResponse);
+}
+
+message ClickRequest {
+  uint64 link_id = 1;
+}
+
+message ClickResponse {
+}

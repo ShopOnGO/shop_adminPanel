@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package proto;
+
+import "entities.proto";
+option go_package = "./service";
+service UserService {
+    rpc CreateUser (User) returns (UserResponse);
+    rpc FindUserByEmail (EmailRequest) returns (UserResponse);
+    rpc UpdateUser (User) returns (UserResponse);
+    rpc DeleteUser (DeleteUserRequest) returns (Error);
+  }
+
+
+  message UserResponse {
+    User user = 1;
+    ErrorResponse error = 2;
+  }
+
+  message EmailRequest {
+    string email = 1;
+  }
+
+  message DeleteUserRequest {
+    uint64 id = 1;
+    bool Unscoped = 2;
+  }
