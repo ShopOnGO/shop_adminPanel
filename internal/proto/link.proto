@@ -9,7 +9,6 @@ service LinkService {
   rpc Create(CreateLinkRequest) returns (CreateLinkResponse);
   rpc Update(UpdateLinkRequest) returns (UpdateLinkResponse);
   rpc Delete(DeleteLinkRequest) returns (DeleteLinkResponse);
-  rpc DeleteForever(DeleteLinkRequest) returns (DeleteLinkResponse);
   rpc GetLinkByHash(GetLinkByHashRequest) returns (GetLinkByHashResponse);
   rpc GetByID(GetLinkByIDRequest) returns (GetLinkByIDResponse);
   rpc GetAllLinks(GetAllLinksRequest) returns (GetAllLinksResponse);
@@ -40,6 +39,7 @@ message UpdateLinkResponse {
 
 message DeleteLinkRequest {
     uint32 id = 1;
+    bool unscoped = 2;
 }
 
 message DeleteLinkResponse {

@@ -44,7 +44,7 @@ func (s *BrandService) CreateBrand(ctx context.Context, req *pb.CreateBrandReque
 }
 
 func (s *BrandService) GetFeaturedBrands(ctx context.Context, req *pb.GetFeaturedBrandsRequest) (*pb.BrandListResponse, error) {
-	brands, err := s.BrandRepository.GetFeaturedBrands(int(req.Amount))
+	brands, err := s.BrandRepository.GetFeaturedBrands(int(req.Amount), req.Unscoped)
 	if err != nil {
 		return &pb.BrandListResponse{
 			Error: &pb.ErrorResponse{
@@ -56,21 +56,6 @@ func (s *BrandService) GetFeaturedBrands(ctx context.Context, req *pb.GetFeature
 	for i, brand := range brands {
 		brandPtrs[i] = ConvertDBToProto(&brand)
 	}
-	return &pb.BrandListResponse{Brands: brandPtrs}, nil
-}
-func (s *BrandService) GetFeaturedWithDeletedBrands(ctx context.Context, req *pb.GetFeaturedBrandsRequest) (*pb.BrandListResponse, error) {
-	brands, err := s.BrandRepository.GetFeaturedWithDeletedBrands(int(req.Amount))
-	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to get brands")
-	}
-
-	brandPtrs := make([]*pb.Brand, 0, len(brands))
-
-	for _, brand := range brands {
-		brandCopy := ConvertDBToProto(&brand)
-		brandPtrs = append(brandPtrs, brandCopy)
-	}
-
 	return &pb.BrandListResponse{Brands: brandPtrs}, nil
 }
 
@@ -153,14 +138,7 @@ func (s *BrandService) UpdateBrand(ctx context.Context, req *pb.Brand) (*pb.Bran
 }
 
 func (s *BrandService) DeleteBrand(ctx context.Context, req *pb.DeleteBrandRequest) (*pb.DeleteBrandResponse, error) {
-	if req.Id == 0 {
-		return &pb.DeleteBrandResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: "brand ID is required for deletion",
-			}}, status.Errorf(codes.InvalidArgument, "brand ID is required for deletion")
-	}
-	err := s.BrandRepository.Delete(uint(req.Id))
+	err := s.BrandRepository.Delete(req.Name, req.Unscoped)
 	if err != nil {
 		return &pb.DeleteBrandResponse{
 			Error: &pb.ErrorResponse{
@@ -168,26 +146,6 @@ func (s *BrandService) DeleteBrand(ctx context.Context, req *pb.DeleteBrandReque
 				Message: err.Error(),
 			}}, status.Errorf(codes.Internal, err.Error())
 	}
-	return &pb.DeleteBrandResponse{}, nil
-}
-func (s *BrandService) DeleteForeverBrand(ctx context.Context, req *pb.DeleteBrandByNameRequest) (*pb.DeleteBrandResponse, error) {
-	if req.Name == "" {
-		return &pb.DeleteBrandResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: "brand name is required for deletion",
-			}}, status.Errorf(codes.InvalidArgument, "brand name is required for deletion")
-	}
-
-	err := s.BrandRepository.DeleteForever(req.Name)
-	if err != nil {
-		return &pb.DeleteBrandResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: "failed to delete brand",
-			}}, status.Errorf(codes.Internal, "failed to delete brand")
-	}
-
 	return &pb.DeleteBrandResponse{}, nil
 }
 

@@ -22,26 +22,12 @@ func (repo *CategoryRepository) Create(category *Category) (*Category, error) {
 	return category, nil
 }
 
-func (repo *CategoryRepository) GetFeaturedCategories(amount int) ([]Category, error) {
+func (repo *CategoryRepository) GetFeaturedCategories(amount int, unscoped bool) ([]Category, error) {
 	var categories []Category
 	query := repo.Database.DB
-
-	if amount > 0 {
-		query = query.Limit(amount)
+	if unscoped {
+		query = query.Unscoped()
 	}
-
-	result := query.Find(&categories)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-
-	return categories, nil
-}
-
-func (repo *CategoryRepository) GetFeaturedWithDeletedCategories(amount int) ([]Category, error) {
-	var categories []Category
-	query := repo.Database.DB.Unscoped()
-
 	if amount > 0 {
 		query = query.Limit(amount)
 	}
@@ -70,13 +56,6 @@ func (repo *CategoryRepository) Update(category *Category) (*Category, error) {
 	return category, nil
 }
 
-func (repo *CategoryRepository) Delete(id uint) error {
-	result := repo.Database.DB.Delete(&Category{}, id)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
 func (repo *CategoryRepository) FindCategoryByID(id uint) (*Category, error) {
 	var category Category
 	result := repo.Database.DB.First(&category, id)
@@ -85,8 +64,21 @@ func (repo *CategoryRepository) FindCategoryByID(id uint) (*Category, error) {
 	}
 	return &category, nil
 }
-func (repo *CategoryRepository) DeleteForever(name string) error {
+
+//	func (repo *CategoryRepository) Delete(id uint) error {
+//		result := repo.Database.DB.Delete(&Category{}, id)
+//		if result.Error != nil {
+//			return result.Error
+//		}
+//		return nil
+//	}
+func (repo *CategoryRepository) Delete(name string, unscoped bool) error {
 	// Принудительно удаляем все категории с таким именем
 	// важно! find в методах поиска не даст удаленные мягко
-	return repo.Database.DB.Unscoped().Where("name = ?", name).Delete(&Category{}).Error
+
+	query := repo.Database.DB
+	if unscoped {
+		query = query.Unscoped()
+	}
+	return query.Where("name = ?", name).Delete(&Category{}).Error
 }

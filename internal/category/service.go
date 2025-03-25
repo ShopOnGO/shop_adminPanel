@@ -40,23 +40,7 @@ func (s *CategoryService) CreateCategory(ctx context.Context, req *pb.CreateCate
 }
 
 func (s *CategoryService) GetFeaturedCategories(ctx context.Context, req *pb.GetFeaturedCategoriesRequest) (*pb.GetFeaturedCategoriesResponse, error) {
-	categories, err := s.CategoryRepository.GetFeaturedCategories(int(req.Amount))
-	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to get categories")
-	}
-
-	categoryPtrs := make([]*pb.Category, 0, len(categories))
-
-	for _, category := range categories {
-		categoryCopy := ConvertDBToProto(&category)
-		categoryPtrs = append(categoryPtrs, categoryCopy)
-	}
-
-	return &pb.GetFeaturedCategoriesResponse{Categories: categoryPtrs}, nil
-}
-
-func (s *CategoryService) GetFeaturedWithDeletedCategories(ctx context.Context, req *pb.GetFeaturedCategoriesRequest) (*pb.GetFeaturedCategoriesResponse, error) {
-	categories, err := s.CategoryRepository.GetFeaturedWithDeletedCategories(int(req.Amount))
+	categories, err := s.CategoryRepository.GetFeaturedCategories(int(req.Amount), req.Unscoped)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to get categories")
 	}
@@ -131,26 +115,9 @@ func (s *CategoryService) UpdateCategory(ctx context.Context, req *pb.UpdateCate
 		Category: ConvertDBToProto(updatedCategory)}, nil
 }
 
-func (s *CategoryService) DeleteCategory(ctx context.Context, req *pb.DeleteCategoryRequest) (*pb.DeleteCategoryResponse, error) {
-	if req.Id == 0 {
-		return &pb.DeleteCategoryResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.InvalidArgument), Message: "category ID is required"},
-		}, status.Error(codes.InvalidArgument, "category ID is required")
-	}
+func (s *CategoryService) DeleteCategory(ctx context.Context, req *pb.DeleteCategoryByNameRequest) (*pb.DeleteCategoryResponse, error) {
 
-	err := s.CategoryRepository.Delete(uint(req.Id))
-	if err != nil {
-		return &pb.DeleteCategoryResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.Internal), Message: "failed to delete category"},
-		}, status.Error(codes.Internal, "failed to delete category")
-	}
-
-	return &pb.DeleteCategoryResponse{}, nil
-}
-
-func (s *CategoryService) DeleteForeverCategory(ctx context.Context, req *pb.DeleteCategoryByNameRequest) (*pb.DeleteCategoryResponse, error) {
-
-	err := s.CategoryRepository.DeleteForever(req.Name)
+	err := s.CategoryRepository.Delete(req.Name, req.Unscoped)
 	if err != nil {
 		return &pb.DeleteCategoryResponse{
 			Error: &pb.ErrorResponse{Code: int32(codes.Internal), Message: "failed to delete category"},

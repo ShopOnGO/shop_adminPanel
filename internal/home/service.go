@@ -28,7 +28,7 @@ func NewHomeService(categoryRepository di.ICategoryRepository, productsRepositor
 }
 
 func (s *HomeService) GetHomeData(ctx context.Context, req *pb.EmptyRequest) (*pb.HomeDataResponse, error) {
-	categories, err := s.CategoryRepository.GetFeaturedCategories(5)
+	categories, err := s.CategoryRepository.GetFeaturedCategories(5, false)
 	if err != nil {
 		return &pb.HomeDataResponse{
 			Error: &pb.ErrorResponse{
@@ -52,7 +52,7 @@ func (s *HomeService) GetHomeData(ctx context.Context, req *pb.EmptyRequest) (*p
 	// if err != nil {
 	// 	return nil, err
 	// }
-	brands, err := s.BrandRepository.GetFeaturedBrands(5)
+	brands, err := s.BrandRepository.GetFeaturedBrands(5, false)
 	if err != nil {
 		return &pb.HomeDataResponse{
 			Error: &pb.ErrorResponse{

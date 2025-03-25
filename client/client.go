@@ -89,8 +89,8 @@ func testCategoryService(client pb.CategoryServiceClient) {
 		fmt.Printf("   - ID=%d, Name=%s\n", category.Model.Id, category.Name)
 	}
 
-	_, err = client.DeleteCategory(ctx, &pb.DeleteCategoryRequest{
-		Id: createResp.Category.Model.Id,
+	_, err = client.DeleteCategory(ctx, &pb.DeleteCategoryByNameRequest{
+		Name: createResp.Category.Name,
 	})
 	if err != nil {
 		log.Fatalf("error during category deletion: %v", err)
@@ -102,7 +102,7 @@ func DeleteAllCategories(client pb.CategoryServiceClient) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	resp, err := client.GetFeaturedWithDeletedCategories(ctx, &pb.GetFeaturedCategoriesRequest{Amount: 0})
+	resp, err := client.GetFeaturedCategories(ctx, &pb.GetFeaturedCategoriesRequest{Amount: 0, Unscoped: true})
 	if err != nil {
 		log.Fatalf("error during category retrieval: %v", err)
 	}
@@ -113,7 +113,7 @@ func DeleteAllCategories(client pb.CategoryServiceClient) {
 	}
 
 	for _, category := range resp.Categories {
-		_, err := client.DeleteForeverCategory(ctx, &pb.DeleteCategoryByNameRequest{Name: category.Name})
+		_, err := client.DeleteCategory(ctx, &pb.DeleteCategoryByNameRequest{Name: category.Name, Unscoped: true})
 		if err != nil {
 			log.Printf("❌ Error deleting category Name=%s: %v", category.Name, err)
 		} else {
@@ -153,8 +153,9 @@ func testBrandService(client pb.BrandServiceClient) {
 	}
 	fmt.Printf("✅ Brand updated: ID=%d, Name=%s\n", updateResp.Brand.Model.Id, updateResp.Brand.Name)
 
-	featuredResp, err := client.GetFeaturedWithDeletedBrands(ctx, &pb.GetFeaturedBrandsRequest{
-		Amount: 5,
+	featuredResp, err := client.GetFeaturedBrands(ctx, &pb.GetFeaturedBrandsRequest{
+		Amount:   5,
+		Unscoped: true,
 	})
 	if err != nil {
 		log.Fatalf("error during brand retrieval: %v", err)
@@ -165,7 +166,7 @@ func testBrandService(client pb.BrandServiceClient) {
 	}
 
 	_, err = client.DeleteBrand(ctx, &pb.DeleteBrandRequest{
-		Id: uint64(createResp.Brand.Model.Id),
+		Name: createResp.Brand.Name,
 	})
 	if err != nil {
 		log.Fatalf("error during brand deletion: %v", err)
@@ -177,7 +178,7 @@ func DeleteAllBrands(client pb.BrandServiceClient) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	resp, err := client.GetFeaturedWithDeletedBrands(ctx, &pb.GetFeaturedBrandsRequest{Amount: 0})
+	resp, err := client.GetFeaturedBrands(ctx, &pb.GetFeaturedBrandsRequest{Amount: 0, Unscoped: true})
 	if err != nil {
 		log.Fatalf("error during brand retrieval: %v", err)
 	}
@@ -188,7 +189,7 @@ func DeleteAllBrands(client pb.BrandServiceClient) {
 	}
 
 	for _, brand := range resp.Brands {
-		_, err := client.DeleteForeverBrand(ctx, &pb.DeleteBrandByNameRequest{Name: brand.Name})
+		_, err := client.DeleteBrand(ctx, &pb.DeleteBrandRequest{Name: brand.Name, Unscoped: true})
 		if err != nil {
 			log.Printf("❌ Error deleting brand Name=%s: %v", brand.Name, err)
 		} else {
@@ -212,7 +213,7 @@ func DeleteAllLinks(client pb.LinkServiceClient) {
 	}
 
 	for _, link := range resp.Links {
-		_, err := client.DeleteForever(ctx, &pb.DeleteLinkRequest{Id: link.Model.Id})
+		_, err := client.Delete(ctx, &pb.DeleteLinkRequest{Id: link.Model.Id, Unscoped: true})
 		if err != nil {
 			log.Printf("❌ Error permanently deleting link ID=%d: %v", link.Model.Id, err)
 		} else {

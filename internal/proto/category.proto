@@ -8,12 +8,10 @@ option go_package = "./service";
 service CategoryService {
   rpc CreateCategory(CreateCategoryRequest) returns (CreateCategoryResponse);
   rpc GetFeaturedCategories(GetFeaturedCategoriesRequest) returns (GetFeaturedCategoriesResponse);
-  rpc GetFeaturedWithDeletedCategories(GetFeaturedCategoriesRequest) returns (GetFeaturedCategoriesResponse);
   rpc FindCategoryByName(FindCategoryByNameRequest) returns (FindCategoryByNameResponse);
   rpc FindCategoryByID(FindCategoryByIDRequest) returns (FindCategoryByIDResponse);
   rpc UpdateCategory(UpdateCategoryRequest) returns (UpdateCategoryResponse);
-  rpc DeleteCategory(DeleteCategoryRequest) returns (DeleteCategoryResponse);
-  rpc DeleteForeverCategory(DeleteCategoryByNameRequest) returns (DeleteCategoryResponse);
+  rpc DeleteCategory(DeleteCategoryByNameRequest) returns (DeleteCategoryResponse);
 }
 
   message CreateCategoryRequest {// вот здесь лучше категорию передать!
@@ -28,6 +26,7 @@ service CategoryService {
 
   message GetFeaturedCategoriesRequest {
     uint32 amount = 1;
+    bool unscoped = 2;
   }
 
   message GetFeaturedCategoriesResponse {
@@ -66,13 +65,10 @@ service CategoryService {
     ErrorResponse error = 2;
   }
 
-
-  message DeleteCategoryRequest {
-    uint32 id = 1;
-  }
   message DeleteCategoryResponse {
     ErrorResponse error = 1;
   }
  message DeleteCategoryByNameRequest {
     string name = 1;
+    bool unscoped = 2;
   }

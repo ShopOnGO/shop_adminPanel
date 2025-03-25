@@ -8,12 +8,10 @@ option go_package = "./service";
 service BrandService {
     rpc CreateBrand (CreateBrandRequest) returns (BrandResponse);
     rpc GetFeaturedBrands (GetFeaturedBrandsRequest) returns (BrandListResponse);
-    rpc GetFeaturedWithDeletedBrands (GetFeaturedBrandsRequest) returns (BrandListResponse);
     rpc FindBrandByName (FindBrandByNameRequest) returns (BrandResponse);
     rpc FindBrandByID(FindBrandByIDRequest) returns (BrandResponse);
     rpc UpdateBrand (Brand) returns (BrandResponse);
     rpc DeleteBrand (DeleteBrandRequest) returns (DeleteBrandResponse);
-    rpc DeleteForeverBrand (DeleteBrandByNameRequest) returns (DeleteBrandResponse);
 }
 
 message CreateBrandRequest {
@@ -25,6 +23,7 @@ message CreateBrandRequest {
 
 message GetFeaturedBrandsRequest {
     int32 amount = 1;
+    bool unscoped = 2;
 }
 
 message FindBrandByNameRequest {
@@ -36,7 +35,8 @@ message FindBrandByIDRequest {
 
 
 message DeleteBrandRequest {
-    uint64 id = 1;
+    string name = 1;
+    bool unscoped = 2;
 }
 
 message BrandResponse {
@@ -52,7 +52,3 @@ message BrandListResponse {
 message DeleteBrandResponse {
     ErrorResponse error = 1;
 }
-
- message DeleteBrandByNameRequest {
-    string name = 1;
-  }

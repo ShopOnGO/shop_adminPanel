@@ -41,20 +41,18 @@ func (repo *LinkRepository) Update(link *Link) (*Link, error) { // если по
 	return link, nil
 }
 
-func (repo *LinkRepository) Delete(id uint) error {
-	result := repo.Database.DB.Delete(&Link{}, id)
+func (repo *LinkRepository) Delete(id uint, unscoped bool) error {
+	query := repo.Database.DB
+	if unscoped {
+		query = query.Unscoped()
+	}
+	result := query.Delete(&Link{}, id)
 	if result.Error != nil {
 		return result.Error
 	}
 	return nil
 }
-func (repo *LinkRepository) DeleteForever(id uint) error {
-	result := repo.Database.DB.Unscoped().Delete(&Link{}, id)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
+
 func (repo *LinkRepository) GetById(id uint) (*Link, error) {
 	var link Link                               // автоматическое lowercase и множественное число
 	result := repo.Database.DB.First(&link, id) // SQL QUERY BY CONDS

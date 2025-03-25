@@ -29,20 +29,16 @@ type IProductRepository interface {
 
 type ICategoryRepository interface {
 	Create(category *category.Category) (*category.Category, error) //done
-	GetFeaturedCategories(amount int) ([]category.Category, error)
-	GetFeaturedWithDeletedCategories(amount int) ([]category.Category, error)
+	GetFeaturedCategories(amount int, unscoped bool) ([]category.Category, error)
 	FindByName(name string) (*category.Category, error)
 	FindCategoryByID(id uint) (*category.Category, error) //done
 	Update(category *category.Category) (*category.Category, error)
-	Delete(id uint) error
-	DeleteForever(name string) error
+	Delete(name string, unscoped bool) error
 }
 type IBrandRepository interface {
 	Create(category *brand.Brand) (*brand.Brand, error)
-	GetFeaturedBrands(amount int) ([]brand.Brand, error)
-	GetFeaturedWithDeletedBrands(amount int) ([]brand.Brand, error)
+	GetFeaturedBrands(amount int, unscoped bool) ([]brand.Brand, error)
 	FindByName(name string) (*brand.Brand, error)
 	Update(brand *brand.Brand) (*brand.Brand, error)
-	Delete(id uint) error
-	DeleteForever(name string) error
+	Delete(name string, unscoped bool) error
 }

@@ -22,7 +22,6 @@ const (
 	LinkService_Create_FullMethodName        = "/proto.LinkService/Create"
 	LinkService_Update_FullMethodName        = "/proto.LinkService/Update"
 	LinkService_Delete_FullMethodName        = "/proto.LinkService/Delete"
-	LinkService_DeleteForever_FullMethodName = "/proto.LinkService/DeleteForever"
 	LinkService_GetLinkByHash_FullMethodName = "/proto.LinkService/GetLinkByHash"
 	LinkService_GetByID_FullMethodName       = "/proto.LinkService/GetByID"
 	LinkService_GetAllLinks_FullMethodName   = "/proto.LinkService/GetAllLinks"
@@ -36,7 +35,6 @@ type LinkServiceClient interface {
 	Create(ctx context.Context, in *CreateLinkRequest, opts ...grpc.CallOption) (*CreateLinkResponse, error)
 	Update(ctx context.Context, in *UpdateLinkRequest, opts ...grpc.CallOption) (*UpdateLinkResponse, error)
 	Delete(ctx context.Context, in *DeleteLinkRequest, opts ...grpc.CallOption) (*DeleteLinkResponse, error)
-	DeleteForever(ctx context.Context, in *DeleteLinkRequest, opts ...grpc.CallOption) (*DeleteLinkResponse, error)
 	GetLinkByHash(ctx context.Context, in *GetLinkByHashRequest, opts ...grpc.CallOption) (*GetLinkByHashResponse, error)
 	GetByID(ctx context.Context, in *GetLinkByIDRequest, opts ...grpc.CallOption) (*GetLinkByIDResponse, error)
 	GetAllLinks(ctx context.Context, in *GetAllLinksRequest, opts ...grpc.CallOption) (*GetAllLinksResponse, error)
@@ -75,16 +73,6 @@ func (c *linkServiceClient) Delete(ctx context.Context, in *DeleteLinkRequest, o
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteLinkResponse)
 	err := c.cc.Invoke(ctx, LinkService_Delete_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *linkServiceClient) DeleteForever(ctx context.Context, in *DeleteLinkRequest, opts ...grpc.CallOption) (*DeleteLinkResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteLinkResponse)
-	err := c.cc.Invoke(ctx, LinkService_DeleteForever_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +126,6 @@ type LinkServiceServer interface {
 	Create(context.Context, *CreateLinkRequest) (*CreateLinkResponse, error)
 	Update(context.Context, *UpdateLinkRequest) (*UpdateLinkResponse, error)
 	Delete(context.Context, *DeleteLinkRequest) (*DeleteLinkResponse, error)
-	DeleteForever(context.Context, *DeleteLinkRequest) (*DeleteLinkResponse, error)
 	GetLinkByHash(context.Context, *GetLinkByHashRequest) (*GetLinkByHashResponse, error)
 	GetByID(context.Context, *GetLinkByIDRequest) (*GetLinkByIDResponse, error)
 	GetAllLinks(context.Context, *GetAllLinksRequest) (*GetAllLinksResponse, error)
@@ -161,9 +148,6 @@ func (UnimplementedLinkServiceServer) Update(context.Context, *UpdateLinkRequest
 }
 func (UnimplementedLinkServiceServer) Delete(context.Context, *DeleteLinkRequest) (*DeleteLinkResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
-}
-func (UnimplementedLinkServiceServer) DeleteForever(context.Context, *DeleteLinkRequest) (*DeleteLinkResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteForever not implemented")
 }
 func (UnimplementedLinkServiceServer) GetLinkByHash(context.Context, *GetLinkByHashRequest) (*GetLinkByHashResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLinkByHash not implemented")
@@ -248,24 +232,6 @@ func _LinkService_Delete_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LinkServiceServer).Delete(ctx, req.(*DeleteLinkRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _LinkService_DeleteForever_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteLinkRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(LinkServiceServer).DeleteForever(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: LinkService_DeleteForever_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LinkServiceServer).DeleteForever(ctx, req.(*DeleteLinkRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -360,10 +326,6 @@ var LinkService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _LinkService_Delete_Handler,
-		},
-		{
-			MethodName: "DeleteForever",
-			Handler:    _LinkService_DeleteForever_Handler,
 		},
 		{
 			MethodName: "GetLinkByHash",

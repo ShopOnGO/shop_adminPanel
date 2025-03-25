@@ -19,14 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	BrandService_CreateBrand_FullMethodName                  = "/proto.BrandService/CreateBrand"
-	BrandService_GetFeaturedBrands_FullMethodName            = "/proto.BrandService/GetFeaturedBrands"
-	BrandService_GetFeaturedWithDeletedBrands_FullMethodName = "/proto.BrandService/GetFeaturedWithDeletedBrands"
-	BrandService_FindBrandByName_FullMethodName              = "/proto.BrandService/FindBrandByName"
-	BrandService_FindBrandByID_FullMethodName                = "/proto.BrandService/FindBrandByID"
-	BrandService_UpdateBrand_FullMethodName                  = "/proto.BrandService/UpdateBrand"
-	BrandService_DeleteBrand_FullMethodName                  = "/proto.BrandService/DeleteBrand"
-	BrandService_DeleteForeverBrand_FullMethodName           = "/proto.BrandService/DeleteForeverBrand"
+	BrandService_CreateBrand_FullMethodName       = "/proto.BrandService/CreateBrand"
+	BrandService_GetFeaturedBrands_FullMethodName = "/proto.BrandService/GetFeaturedBrands"
+	BrandService_FindBrandByName_FullMethodName   = "/proto.BrandService/FindBrandByName"
+	BrandService_FindBrandByID_FullMethodName     = "/proto.BrandService/FindBrandByID"
+	BrandService_UpdateBrand_FullMethodName       = "/proto.BrandService/UpdateBrand"
+	BrandService_DeleteBrand_FullMethodName       = "/proto.BrandService/DeleteBrand"
 )
 
 // BrandServiceClient is the client API for BrandService service.
@@ -35,12 +33,10 @@ const (
 type BrandServiceClient interface {
 	CreateBrand(ctx context.Context, in *CreateBrandRequest, opts ...grpc.CallOption) (*BrandResponse, error)
 	GetFeaturedBrands(ctx context.Context, in *GetFeaturedBrandsRequest, opts ...grpc.CallOption) (*BrandListResponse, error)
-	GetFeaturedWithDeletedBrands(ctx context.Context, in *GetFeaturedBrandsRequest, opts ...grpc.CallOption) (*BrandListResponse, error)
 	FindBrandByName(ctx context.Context, in *FindBrandByNameRequest, opts ...grpc.CallOption) (*BrandResponse, error)
 	FindBrandByID(ctx context.Context, in *FindBrandByIDRequest, opts ...grpc.CallOption) (*BrandResponse, error)
 	UpdateBrand(ctx context.Context, in *Brand, opts ...grpc.CallOption) (*BrandResponse, error)
 	DeleteBrand(ctx context.Context, in *DeleteBrandRequest, opts ...grpc.CallOption) (*DeleteBrandResponse, error)
-	DeleteForeverBrand(ctx context.Context, in *DeleteBrandByNameRequest, opts ...grpc.CallOption) (*DeleteBrandResponse, error)
 }
 
 type brandServiceClient struct {
@@ -65,16 +61,6 @@ func (c *brandServiceClient) GetFeaturedBrands(ctx context.Context, in *GetFeatu
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BrandListResponse)
 	err := c.cc.Invoke(ctx, BrandService_GetFeaturedBrands_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *brandServiceClient) GetFeaturedWithDeletedBrands(ctx context.Context, in *GetFeaturedBrandsRequest, opts ...grpc.CallOption) (*BrandListResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BrandListResponse)
-	err := c.cc.Invoke(ctx, BrandService_GetFeaturedWithDeletedBrands_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -121,28 +107,16 @@ func (c *brandServiceClient) DeleteBrand(ctx context.Context, in *DeleteBrandReq
 	return out, nil
 }
 
-func (c *brandServiceClient) DeleteForeverBrand(ctx context.Context, in *DeleteBrandByNameRequest, opts ...grpc.CallOption) (*DeleteBrandResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteBrandResponse)
-	err := c.cc.Invoke(ctx, BrandService_DeleteForeverBrand_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // BrandServiceServer is the server API for BrandService service.
 // All implementations must embed UnimplementedBrandServiceServer
 // for forward compatibility.
 type BrandServiceServer interface {
 	CreateBrand(context.Context, *CreateBrandRequest) (*BrandResponse, error)
 	GetFeaturedBrands(context.Context, *GetFeaturedBrandsRequest) (*BrandListResponse, error)
-	GetFeaturedWithDeletedBrands(context.Context, *GetFeaturedBrandsRequest) (*BrandListResponse, error)
 	FindBrandByName(context.Context, *FindBrandByNameRequest) (*BrandResponse, error)
 	FindBrandByID(context.Context, *FindBrandByIDRequest) (*BrandResponse, error)
 	UpdateBrand(context.Context, *Brand) (*BrandResponse, error)
 	DeleteBrand(context.Context, *DeleteBrandRequest) (*DeleteBrandResponse, error)
-	DeleteForeverBrand(context.Context, *DeleteBrandByNameRequest) (*DeleteBrandResponse, error)
 	mustEmbedUnimplementedBrandServiceServer()
 }
 
@@ -159,9 +133,6 @@ func (UnimplementedBrandServiceServer) CreateBrand(context.Context, *CreateBrand
 func (UnimplementedBrandServiceServer) GetFeaturedBrands(context.Context, *GetFeaturedBrandsRequest) (*BrandListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFeaturedBrands not implemented")
 }
-func (UnimplementedBrandServiceServer) GetFeaturedWithDeletedBrands(context.Context, *GetFeaturedBrandsRequest) (*BrandListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetFeaturedWithDeletedBrands not implemented")
-}
 func (UnimplementedBrandServiceServer) FindBrandByName(context.Context, *FindBrandByNameRequest) (*BrandResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindBrandByName not implemented")
 }
@@ -173,9 +144,6 @@ func (UnimplementedBrandServiceServer) UpdateBrand(context.Context, *Brand) (*Br
 }
 func (UnimplementedBrandServiceServer) DeleteBrand(context.Context, *DeleteBrandRequest) (*DeleteBrandResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteBrand not implemented")
-}
-func (UnimplementedBrandServiceServer) DeleteForeverBrand(context.Context, *DeleteBrandByNameRequest) (*DeleteBrandResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteForeverBrand not implemented")
 }
 func (UnimplementedBrandServiceServer) mustEmbedUnimplementedBrandServiceServer() {}
 func (UnimplementedBrandServiceServer) testEmbeddedByValue()                      {}
@@ -230,24 +198,6 @@ func _BrandService_GetFeaturedBrands_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BrandServiceServer).GetFeaturedBrands(ctx, req.(*GetFeaturedBrandsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BrandService_GetFeaturedWithDeletedBrands_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFeaturedBrandsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrandServiceServer).GetFeaturedWithDeletedBrands(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BrandService_GetFeaturedWithDeletedBrands_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrandServiceServer).GetFeaturedWithDeletedBrands(ctx, req.(*GetFeaturedBrandsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -324,24 +274,6 @@ func _BrandService_DeleteBrand_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BrandService_DeleteForeverBrand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteBrandByNameRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrandServiceServer).DeleteForeverBrand(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BrandService_DeleteForeverBrand_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrandServiceServer).DeleteForeverBrand(ctx, req.(*DeleteBrandByNameRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // BrandService_ServiceDesc is the grpc.ServiceDesc for BrandService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -358,10 +290,6 @@ var BrandService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BrandService_GetFeaturedBrands_Handler,
 		},
 		{
-			MethodName: "GetFeaturedWithDeletedBrands",
-			Handler:    _BrandService_GetFeaturedWithDeletedBrands_Handler,
-		},
-		{
 			MethodName: "FindBrandByName",
 			Handler:    _BrandService_FindBrandByName_Handler,
 		},
@@ -376,10 +304,6 @@ var BrandService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteBrand",
 			Handler:    _BrandService_DeleteBrand_Handler,
-		},
-		{
-			MethodName: "DeleteForeverBrand",
-			Handler:    _BrandService_DeleteForeverBrand_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

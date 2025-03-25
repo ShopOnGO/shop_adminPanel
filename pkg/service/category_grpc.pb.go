@@ -19,14 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CategoryService_CreateCategory_FullMethodName                   = "/proto.CategoryService/CreateCategory"
-	CategoryService_GetFeaturedCategories_FullMethodName            = "/proto.CategoryService/GetFeaturedCategories"
-	CategoryService_GetFeaturedWithDeletedCategories_FullMethodName = "/proto.CategoryService/GetFeaturedWithDeletedCategories"
-	CategoryService_FindCategoryByName_FullMethodName               = "/proto.CategoryService/FindCategoryByName"
-	CategoryService_FindCategoryByID_FullMethodName                 = "/proto.CategoryService/FindCategoryByID"
-	CategoryService_UpdateCategory_FullMethodName                   = "/proto.CategoryService/UpdateCategory"
-	CategoryService_DeleteCategory_FullMethodName                   = "/proto.CategoryService/DeleteCategory"
-	CategoryService_DeleteForeverCategory_FullMethodName            = "/proto.CategoryService/DeleteForeverCategory"
+	CategoryService_CreateCategory_FullMethodName        = "/proto.CategoryService/CreateCategory"
+	CategoryService_GetFeaturedCategories_FullMethodName = "/proto.CategoryService/GetFeaturedCategories"
+	CategoryService_FindCategoryByName_FullMethodName    = "/proto.CategoryService/FindCategoryByName"
+	CategoryService_FindCategoryByID_FullMethodName      = "/proto.CategoryService/FindCategoryByID"
+	CategoryService_UpdateCategory_FullMethodName        = "/proto.CategoryService/UpdateCategory"
+	CategoryService_DeleteCategory_FullMethodName        = "/proto.CategoryService/DeleteCategory"
 )
 
 // CategoryServiceClient is the client API for CategoryService service.
@@ -37,12 +35,10 @@ const (
 type CategoryServiceClient interface {
 	CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*CreateCategoryResponse, error)
 	GetFeaturedCategories(ctx context.Context, in *GetFeaturedCategoriesRequest, opts ...grpc.CallOption) (*GetFeaturedCategoriesResponse, error)
-	GetFeaturedWithDeletedCategories(ctx context.Context, in *GetFeaturedCategoriesRequest, opts ...grpc.CallOption) (*GetFeaturedCategoriesResponse, error)
 	FindCategoryByName(ctx context.Context, in *FindCategoryByNameRequest, opts ...grpc.CallOption) (*FindCategoryByNameResponse, error)
 	FindCategoryByID(ctx context.Context, in *FindCategoryByIDRequest, opts ...grpc.CallOption) (*FindCategoryByIDResponse, error)
 	UpdateCategory(ctx context.Context, in *UpdateCategoryRequest, opts ...grpc.CallOption) (*UpdateCategoryResponse, error)
-	DeleteCategory(ctx context.Context, in *DeleteCategoryRequest, opts ...grpc.CallOption) (*DeleteCategoryResponse, error)
-	DeleteForeverCategory(ctx context.Context, in *DeleteCategoryByNameRequest, opts ...grpc.CallOption) (*DeleteCategoryResponse, error)
+	DeleteCategory(ctx context.Context, in *DeleteCategoryByNameRequest, opts ...grpc.CallOption) (*DeleteCategoryResponse, error)
 }
 
 type categoryServiceClient struct {
@@ -67,16 +63,6 @@ func (c *categoryServiceClient) GetFeaturedCategories(ctx context.Context, in *G
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetFeaturedCategoriesResponse)
 	err := c.cc.Invoke(ctx, CategoryService_GetFeaturedCategories_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *categoryServiceClient) GetFeaturedWithDeletedCategories(ctx context.Context, in *GetFeaturedCategoriesRequest, opts ...grpc.CallOption) (*GetFeaturedCategoriesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetFeaturedCategoriesResponse)
-	err := c.cc.Invoke(ctx, CategoryService_GetFeaturedWithDeletedCategories_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -113,20 +99,10 @@ func (c *categoryServiceClient) UpdateCategory(ctx context.Context, in *UpdateCa
 	return out, nil
 }
 
-func (c *categoryServiceClient) DeleteCategory(ctx context.Context, in *DeleteCategoryRequest, opts ...grpc.CallOption) (*DeleteCategoryResponse, error) {
+func (c *categoryServiceClient) DeleteCategory(ctx context.Context, in *DeleteCategoryByNameRequest, opts ...grpc.CallOption) (*DeleteCategoryResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteCategoryResponse)
 	err := c.cc.Invoke(ctx, CategoryService_DeleteCategory_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *categoryServiceClient) DeleteForeverCategory(ctx context.Context, in *DeleteCategoryByNameRequest, opts ...grpc.CallOption) (*DeleteCategoryResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteCategoryResponse)
-	err := c.cc.Invoke(ctx, CategoryService_DeleteForeverCategory_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -141,12 +117,10 @@ func (c *categoryServiceClient) DeleteForeverCategory(ctx context.Context, in *D
 type CategoryServiceServer interface {
 	CreateCategory(context.Context, *CreateCategoryRequest) (*CreateCategoryResponse, error)
 	GetFeaturedCategories(context.Context, *GetFeaturedCategoriesRequest) (*GetFeaturedCategoriesResponse, error)
-	GetFeaturedWithDeletedCategories(context.Context, *GetFeaturedCategoriesRequest) (*GetFeaturedCategoriesResponse, error)
 	FindCategoryByName(context.Context, *FindCategoryByNameRequest) (*FindCategoryByNameResponse, error)
 	FindCategoryByID(context.Context, *FindCategoryByIDRequest) (*FindCategoryByIDResponse, error)
 	UpdateCategory(context.Context, *UpdateCategoryRequest) (*UpdateCategoryResponse, error)
-	DeleteCategory(context.Context, *DeleteCategoryRequest) (*DeleteCategoryResponse, error)
-	DeleteForeverCategory(context.Context, *DeleteCategoryByNameRequest) (*DeleteCategoryResponse, error)
+	DeleteCategory(context.Context, *DeleteCategoryByNameRequest) (*DeleteCategoryResponse, error)
 	mustEmbedUnimplementedCategoryServiceServer()
 }
 
@@ -163,9 +137,6 @@ func (UnimplementedCategoryServiceServer) CreateCategory(context.Context, *Creat
 func (UnimplementedCategoryServiceServer) GetFeaturedCategories(context.Context, *GetFeaturedCategoriesRequest) (*GetFeaturedCategoriesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFeaturedCategories not implemented")
 }
-func (UnimplementedCategoryServiceServer) GetFeaturedWithDeletedCategories(context.Context, *GetFeaturedCategoriesRequest) (*GetFeaturedCategoriesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetFeaturedWithDeletedCategories not implemented")
-}
 func (UnimplementedCategoryServiceServer) FindCategoryByName(context.Context, *FindCategoryByNameRequest) (*FindCategoryByNameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindCategoryByName not implemented")
 }
@@ -175,11 +146,8 @@ func (UnimplementedCategoryServiceServer) FindCategoryByID(context.Context, *Fin
 func (UnimplementedCategoryServiceServer) UpdateCategory(context.Context, *UpdateCategoryRequest) (*UpdateCategoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCategory not implemented")
 }
-func (UnimplementedCategoryServiceServer) DeleteCategory(context.Context, *DeleteCategoryRequest) (*DeleteCategoryResponse, error) {
+func (UnimplementedCategoryServiceServer) DeleteCategory(context.Context, *DeleteCategoryByNameRequest) (*DeleteCategoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteCategory not implemented")
-}
-func (UnimplementedCategoryServiceServer) DeleteForeverCategory(context.Context, *DeleteCategoryByNameRequest) (*DeleteCategoryResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteForeverCategory not implemented")
 }
 func (UnimplementedCategoryServiceServer) mustEmbedUnimplementedCategoryServiceServer() {}
 func (UnimplementedCategoryServiceServer) testEmbeddedByValue()                         {}
@@ -234,24 +202,6 @@ func _CategoryService_GetFeaturedCategories_Handler(srv interface{}, ctx context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CategoryServiceServer).GetFeaturedCategories(ctx, req.(*GetFeaturedCategoriesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CategoryService_GetFeaturedWithDeletedCategories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFeaturedCategoriesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CategoryServiceServer).GetFeaturedWithDeletedCategories(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CategoryService_GetFeaturedWithDeletedCategories_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CategoryServiceServer).GetFeaturedWithDeletedCategories(ctx, req.(*GetFeaturedCategoriesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -311,7 +261,7 @@ func _CategoryService_UpdateCategory_Handler(srv interface{}, ctx context.Contex
 }
 
 func _CategoryService_DeleteCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteCategoryRequest)
+	in := new(DeleteCategoryByNameRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -323,25 +273,7 @@ func _CategoryService_DeleteCategory_Handler(srv interface{}, ctx context.Contex
 		FullMethod: CategoryService_DeleteCategory_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CategoryServiceServer).DeleteCategory(ctx, req.(*DeleteCategoryRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CategoryService_DeleteForeverCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteCategoryByNameRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CategoryServiceServer).DeleteForeverCategory(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CategoryService_DeleteForeverCategory_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CategoryServiceServer).DeleteForeverCategory(ctx, req.(*DeleteCategoryByNameRequest))
+		return srv.(CategoryServiceServer).DeleteCategory(ctx, req.(*DeleteCategoryByNameRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -362,10 +294,6 @@ var CategoryService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CategoryService_GetFeaturedCategories_Handler,
 		},
 		{
-			MethodName: "GetFeaturedWithDeletedCategories",
-			Handler:    _CategoryService_GetFeaturedWithDeletedCategories_Handler,
-		},
-		{
 			MethodName: "FindCategoryByName",
 			Handler:    _CategoryService_FindCategoryByName_Handler,
 		},
@@ -380,10 +308,6 @@ var CategoryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteCategory",
 			Handler:    _CategoryService_DeleteCategory_Handler,
-		},
-		{
-			MethodName: "DeleteForeverCategory",
-			Handler:    _CategoryService_DeleteForeverCategory_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -62,28 +62,17 @@ func (s *LinkService) Update(ctx context.Context, req *pb.UpdateLinkRequest) (*p
 }
 
 func (s *LinkService) Delete(ctx context.Context, req *pb.DeleteLinkRequest) (*pb.DeleteLinkResponse, error) {
-	err := s.LinkRepository.Delete(uint(req.Id))
+	var err error
+	err = s.LinkRepository.Delete(uint(req.Id), req.Unscoped)
 	if err != nil {
 		return &pb.DeleteLinkResponse{
 			Error: &pb.ErrorResponse{
 				Code:    int32(codes.Internal),
 				Message: err.Error(),
 			},
-		}, status.Errorf(codes.Internal, ErrDeleteLink, err)
+		}, status.Errorf(codes.Internal, "failed to delete link: %v", err)
 	}
-	return &pb.DeleteLinkResponse{}, nil
-}
 
-func (s *LinkService) DeleteForever(ctx context.Context, req *pb.DeleteLinkRequest) (*pb.DeleteLinkResponse, error) {
-	err := s.LinkRepository.DeleteForever(uint(req.Id))
-	if err != nil {
-		return &pb.DeleteLinkResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			},
-		}, status.Errorf(codes.Internal, ErrDeleteForever, err)
-	}
 	return &pb.DeleteLinkResponse{}, nil
 }
 

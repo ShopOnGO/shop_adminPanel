@@ -20,26 +20,12 @@ func (repo *BrandRepository) Create(brand *Brand) (*Brand, error) {
 	}
 	return brand, nil
 }
-func (repo *BrandRepository) GetFeaturedBrands(amount int) ([]Brand, error) {
+func (repo *BrandRepository) GetFeaturedBrands(amount int, unscoped bool) ([]Brand, error) {
 	var brand []Brand
 	query := repo.Database.DB
-
-	if amount > 0 {
-		query = query.Limit(amount)
+	if unscoped {
+		query = query.Unscoped()
 	}
-
-	result := query.Find(&brand)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-
-	return brand, nil
-}
-
-func (repo *BrandRepository) GetFeaturedWithDeletedBrands(amount int) ([]Brand, error) {
-	var brand []Brand
-	query := repo.Database.DB.Unscoped()
-
 	if amount > 0 {
 		query = query.Limit(amount)
 	}
@@ -76,15 +62,11 @@ func (repo *BrandRepository) Update(brand *Brand) (*Brand, error) {
 	return brand, nil
 }
 
-func (repo *BrandRepository) Delete(id uint) error {
-	result := repo.Database.DB.Delete(&Brand{}, id)
-	if result.Error != nil {
-		return result.Error
+func (repo *BrandRepository) Delete(name string, unscoped bool) error {
+	result := repo.Database.DB
+	if unscoped {
+		result = result.Unscoped()
 	}
-	return nil
-}
-func (repo *BrandRepository) DeleteForever(name string) error {
-	// Принудительно удаляем все категории с таким именем
-	// важно! find в методах поиска не даст удаленные мягко
-	return repo.Database.DB.Unscoped().Where("name = ?", name).Delete(&Brand{}).Error
+	result = result.Where("name = ?", name).Delete(&Brand{})
+	return result.Error
 }
