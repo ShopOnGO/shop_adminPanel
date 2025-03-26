@@ -4,7 +4,7 @@ import (
 	"context"
 	"math/rand"
 
-	pb "admin/pkg/service"
+	pb "github.com/ShopOnGO/admin-proto/pkg/service"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

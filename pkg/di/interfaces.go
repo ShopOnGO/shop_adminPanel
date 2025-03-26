@@ -4,7 +4,8 @@ import (
 	"admin/internal/brand"
 	"admin/internal/category"
 	"admin/internal/product"
-	pb "admin/pkg/service"
+
+	pb "github.com/ShopOnGO/admin-proto/pkg/service"
 )
 
 type IStatRepository interface {

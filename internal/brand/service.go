@@ -1,8 +1,9 @@
 package brand
 
 import (
-	pb "admin/pkg/service"
 	"context"
+
+	pb "github.com/ShopOnGO/admin-proto/pkg/service"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

@@ -7,7 +7,8 @@ import (
 	"admin/internal/category"
 	"admin/internal/product"
 	"admin/pkg/di"
-	pb "admin/pkg/service"
+
+	pb "github.com/ShopOnGO/admin-proto/pkg/service"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

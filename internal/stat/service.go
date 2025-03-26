@@ -2,8 +2,9 @@ package stat
 
 import (
 	"admin/pkg/logger"
-	pb "admin/pkg/service"
 	"context"
+
+	pb "github.com/ShopOnGO/admin-proto/pkg/service"
 )
 
 const (

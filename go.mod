@@ -3,14 +3,17 @@ module admin
 go 1.23.3
 
 require (
-	github.com/golang/protobuf v1.5.4
+	github.com/ShopOnGO/admin-proto v0.0.0-20250325182951-03ae22714a0f
 	github.com/sirupsen/logrus v1.9.3
 	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.4
 	gorm.io/gorm v1.25.11
 )
 
-require gorm.io/driver/mysql v1.5.6 // indirect
+require (
+	github.com/golang/protobuf v1.5.4 // indirect
+	gorm.io/driver/mysql v1.5.6 // indirect
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect

@@ -13,7 +13,8 @@ import (
 	"admin/internal/user"
 	"admin/pkg/db"
 	"admin/pkg/logger"
-	pb "admin/pkg/service"
+
+	pb "github.com/ShopOnGO/admin-proto/pkg/service"
 
 	"google.golang.org/grpc"
 )
