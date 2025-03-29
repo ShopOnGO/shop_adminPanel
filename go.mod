@@ -3,7 +3,7 @@ module admin
 go 1.23.3
 
 require (
-	github.com/ShopOnGO/admin-proto v0.0.0-20250325182951-03ae22714a0f
+	github.com/ShopOnGO/admin-proto v0.0.0-20250328142538-00eea8f8031b
 	github.com/sirupsen/logrus v1.9.3
 	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.4

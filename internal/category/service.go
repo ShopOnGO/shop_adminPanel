@@ -3,8 +3,10 @@ package category
 import (
 	"context"
 	"fmt"
+	"time"
 
 	pb "github.com/ShopOnGO/admin-proto/pkg/service"
+	"gorm.io/gorm"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -147,5 +149,45 @@ func ConvertDBToProto(category *Category) *pb.Category {
 		},
 		Name:        category.Name,
 		Description: category.Description,
+	}
+}
+
+func ConvertProtoToDB(protoCategory *pb.Category) *Category {
+	if protoCategory == nil {
+		return nil
+	}
+
+	var model gorm.Model
+	if protoCategory.Model != nil {
+		model = gorm.Model{
+			ID: uint(protoCategory.Model.Id),
+			CreatedAt: func() time.Time {
+				if protoCategory.Model.CreatedAt != nil {
+					return protoCategory.Model.CreatedAt.AsTime()
+				}
+				return time.Time{}
+			}(),
+			UpdatedAt: func() time.Time {
+				if protoCategory.Model.UpdatedAt != nil {
+					return protoCategory.Model.UpdatedAt.AsTime()
+				}
+				return time.Time{}
+			}(),
+			DeletedAt: gorm.DeletedAt{
+				Time: func() time.Time {
+					if protoCategory.Model.DeletedAt != nil {
+						return protoCategory.Model.DeletedAt.AsTime()
+					}
+					return time.Time{}
+				}(),
+				Valid: protoCategory.Model.DeletedAt != nil,
+			},
+		}
+	}
+
+	return &Category{
+		Model:       model,
+		Name:        protoCategory.Name,
+		Description: protoCategory.Description,
 	}
 }

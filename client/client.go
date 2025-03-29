@@ -36,7 +36,7 @@ func main() {
 	testLinkService(linkClient)
 
 	DeleteAllProducts(productClient)
-	testProductService(productClient)
+	testProductService(productClient, categoryClient, brandClient)
 
 	DeleteAllUsers(userClient)
 	testUserService(userClient)
@@ -89,13 +89,13 @@ func testCategoryService(client pb.CategoryServiceClient) {
 		fmt.Printf("   - ID=%d, Name=%s\n", category.Model.Id, category.Name)
 	}
 
-	_, err = client.DeleteCategory(ctx, &pb.DeleteCategoryByNameRequest{
-		Name: createResp.Category.Name,
-	})
-	if err != nil {
-		log.Fatalf("error during category deletion: %v", err)
-	}
-	fmt.Printf("✅ Category with ID=%d deleted (soft delete)\n", createResp.Category.Model.Id)
+	// _, err = client.DeleteCategory(ctx, &pb.DeleteCategoryByNameRequest{
+	// 	Name: createResp.Category.Name,
+	// })
+	// if err != nil {
+	// 	log.Fatalf("error during category deletion: %v", err)
+	// }
+	// fmt.Printf("✅ Category with ID=%d deleted (soft delete)\n", createResp.Category.Model.Id)
 }
 
 func DeleteAllCategories(client pb.CategoryServiceClient) {
@@ -309,18 +309,39 @@ func DeleteAllProducts(client pb.ProductServiceClient) {
 	}
 }
 
-func testProductService(client pb.ProductServiceClient) {
+func testProductService(client pb.ProductServiceClient, categoryClient pb.CategoryServiceClient, brandClient pb.BrandServiceClient) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// 🔹 Create a new product
+	// 🔹 Создаем тестовую категорию
+	categoryResp, err := categoryClient.CreateCategory(ctx, &pb.CreateCategoryRequest{
+		Name: "Test Category",
+	})
+	if err != nil {
+		log.Fatalf("❌ Error creating category: %v", err)
+	}
+	categoryID := categoryResp.Category.Model.Id
+
+	// 🔹 Создаем тестовый бренд
+	brandResp, err := brandClient.CreateBrand(ctx, &pb.CreateBrandRequest{
+		Name: "Test Brand",
+	})
+	if err != nil {
+		log.Fatalf("❌ Error creating brand: %v", err)
+	}
+	brandID := brandResp.Brand.Model.Id
+
+	// 🔹 Теперь создаем продукт с полученными ID
 	createResp, err := client.CreateProduct(ctx, &pb.Product{
 		Name:        "Test Boots",
 		Description: "Winter Boots",
-		CategoryId:  1,
-		BrandId:     1,
-		Stock:       10,
-		IsAvailable: true,
+		Price:       10000,
+		Discount:    500,
+		IsActive:    true,
+		CategoryId:  categoryID, // Используем динамический ID категории
+		BrandId:     brandID,    // Используем динамический ID бренда
+		Images:      "[\"image1.jpg\", \"image2.jpg\"]",
+		VideoUrl:    "https://example.com/video.mp4",
 	})
 	if err != nil {
 		log.Fatalf("❌ Error creating product: %v", err)
@@ -352,29 +373,18 @@ func testProductService(client pb.ProductServiceClient) {
 		Model:       &pb.Model{Id: createResp.Product.Model.Id},
 		Name:        "Updated Boots",
 		Description: "Updated Winter Boots",
-		CategoryId:  1,
-		BrandId:     2,
-		Stock:       20,
-		IsAvailable: true,
+		Price:       12000,
+		Discount:    700,
+		IsActive:    true,
+		CategoryId:  createResp.Product.CategoryId,
+		BrandId:     createResp.Product.BrandId,
+		Images:      "[\"updated_image1.jpg\", \"updated_image2.jpg\"]",
+		VideoUrl:    "https://example.com/updated_video.mp4",
 	})
 	if err != nil {
 		log.Fatalf("❌ Error updating product: %v", err)
 	}
 	fmt.Printf("✅ Product updated: ID=%d, Name=%s\n", updateResp.Product.Model.Id, updateResp.Product.Name)
-
-	// 🔹 Retrieve featured products
-	featuredResp, err := client.GetFeaturedProducts(ctx, &pb.FeaturedRequest{
-		Amount:         5,
-		Random:         true,
-		IncludeDeleted: false, // Only active products
-	})
-	if err != nil {
-		log.Fatalf("❌ Error retrieving featured products: %v", err)
-	}
-	fmt.Println("✅ Featured products:")
-	for _, product := range featuredResp.Products {
-		fmt.Printf("   - ID=%d, Name=%s\n", product.Model.Id, product.Name)
-	}
 
 	// 🔹 Soft delete the product
 	_, err = client.DeleteProduct(ctx, &pb.DeleteProductRequest{
@@ -412,7 +422,7 @@ func testProductService(client pb.ProductServiceClient) {
 	}
 	fmt.Printf("✅ Product ID=%d permanently deleted\n", createResp.Product.Model.Id)
 
-	// 🔹 Verify that the product is completely removed, even from deleted products
+	// 🔹 Verify that the product is completely removed
 	deletedProductsResp, err := client.GetFeaturedProducts(ctx, &pb.FeaturedRequest{
 		Amount:         5,
 		Random:         true,

@@ -1,6 +1,8 @@
 package product
 
 import (
+	"admin/internal/brand"
+	"admin/internal/category"
 	"context"
 	"time"
 
@@ -175,30 +177,25 @@ func ConvertDBToProto(product *Product) *pb.Product {
 				return nil
 			}(),
 		},
-		Name:         product.Name,
-		Description:  product.Description,
-		CategoryId:   uint32(product.CategoryID),
-		BrandId:      uint32(product.BrandID),
-		Discount:     float32(product.Discount),
-		Stock:        int32(product.Stock),
-		IsAvailable:  product.IsAvailable,
-		Size:         product.Size,
-		Color:        product.Color,
-		Material:     product.Material,
-		Gender:       ConvertStringToGenderEnum(product.Gender), // Используем конвертер
-		Season:       ConvertStringToSeasonEnum(product.Season), // Используем конвертер
-		VideoUrl:     product.VideoURL,
-		Gallery:      product.Gallery,
-		Rating:       float32(product.Rating),
-		ReviewsCount: int32(product.ReviewsCount),
+		Name:        product.Name,
+		Description: product.Description,
+		Price:       product.Price,
+		Discount:    product.Discount,
+		IsActive:    product.IsActive,
+		CategoryId:  uint32(product.CategoryID),
+		BrandId:     uint32(product.BrandID),
+		Images:      product.Images,
+		VideoUrl:    product.VideoURL,
+		Category:    category.ConvertDBToProto(&product.Category),
+		Brand:       brand.ConvertDBToProto(&product.Brand),
 	}
 }
+
 func ConvertProtoToDB(protoProduct *pb.Product) *Product {
 	if protoProduct == nil {
 		return nil
 	}
 
-	// Если Model = nil, создаем пустую структуру
 	var model gorm.Model
 	if protoProduct.Model != nil {
 		model = gorm.Model{
@@ -227,24 +224,30 @@ func ConvertProtoToDB(protoProduct *pb.Product) *Product {
 		}
 	}
 
+	// Добавим проверки на nil для Category и Brand
+	var categoryDB category.Category
+	if protoProduct.Category != nil {
+		categoryDB = *category.ConvertProtoToDB(protoProduct.Category)
+	}
+
+	var brandDB brand.Brand
+	if protoProduct.Brand != nil {
+		brandDB = *brand.ConvertProtoToDB(protoProduct.Brand)
+	}
+
 	return &Product{
-		Model:        model,
-		Name:         protoProduct.Name,
-		Description:  protoProduct.Description,
-		CategoryID:   uint(protoProduct.CategoryId),
-		BrandID:      uint(protoProduct.BrandId),
-		Discount:     float64(protoProduct.Discount),
-		Stock:        int(protoProduct.Stock),
-		IsAvailable:  protoProduct.IsAvailable,
-		Size:         protoProduct.Size,
-		Color:        protoProduct.Color,
-		Material:     protoProduct.Material,
-		Gender:       ConvertGenderEnumToString(protoProduct.Gender),
-		Season:       ConvertSeasonEnumToString(protoProduct.Season),
-		VideoURL:     protoProduct.VideoUrl,
-		Gallery:      protoProduct.Gallery,
-		Rating:       float64(protoProduct.Rating),
-		ReviewsCount: int(protoProduct.ReviewsCount),
+		Model:       model,
+		Name:        protoProduct.Name,
+		Description: protoProduct.Description,
+		Price:       protoProduct.Price,
+		Discount:    protoProduct.Discount,
+		IsActive:    protoProduct.IsActive,
+		CategoryID:  uint(protoProduct.CategoryId),
+		BrandID:     uint(protoProduct.BrandId),
+		Images:      protoProduct.Images,
+		VideoURL:    protoProduct.VideoUrl,
+		Category:    categoryDB,
+		Brand:       brandDB,
 	}
 }
 

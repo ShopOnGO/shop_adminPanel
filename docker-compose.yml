@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  admin_container:
+    container_name: admin_container
+    build: ./
+    command: ./wait-for-db.sh ./admin_panel "migrate"
+    environment:
+      - POSTGRES_HOST=go_shop_postgres  # Имя существующего контейнера
+      - POSTGRES_USER=${POSTGRES_USER}   # Используйте те же переменные, что и в БД
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}      # Убедитесь, что БД существует
+      - POSTGRES_PORT=5432
+    networks:
+      - shopongo_default  # Подключение к сети существующего контейнера
+    ports:
+      - "50051:50051"
+
+networks:
+  shopongo_default:
+    external: true  # Используем внешнюю сеть

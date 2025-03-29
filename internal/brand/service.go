@@ -2,8 +2,10 @@ package brand
 
 import (
 	"context"
+	"time"
 
 	pb "github.com/ShopOnGO/admin-proto/pkg/service"
+	"gorm.io/gorm"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -171,5 +173,47 @@ func ConvertDBToProto(brand *Brand) *pb.Brand {
 		Description: brand.Description,
 		VideoUrl:    brand.VideoURL,
 		Logo:        brand.Logo,
+	}
+}
+
+func ConvertProtoToDB(protoBrand *pb.Brand) *Brand {
+	if protoBrand == nil {
+		return nil
+	}
+
+	var model gorm.Model
+	if protoBrand.Model != nil {
+		model = gorm.Model{
+			ID: uint(protoBrand.Model.Id),
+			CreatedAt: func() time.Time {
+				if protoBrand.Model.CreatedAt != nil {
+					return protoBrand.Model.CreatedAt.AsTime()
+				}
+				return time.Time{}
+			}(),
+			UpdatedAt: func() time.Time {
+				if protoBrand.Model.UpdatedAt != nil {
+					return protoBrand.Model.UpdatedAt.AsTime()
+				}
+				return time.Time{}
+			}(),
+			DeletedAt: gorm.DeletedAt{
+				Time: func() time.Time {
+					if protoBrand.Model.DeletedAt != nil {
+						return protoBrand.Model.DeletedAt.AsTime()
+					}
+					return time.Time{}
+				}(),
+				Valid: protoBrand.Model.DeletedAt != nil,
+			},
+		}
+	}
+
+	return &Brand{
+		Model:       model,
+		Name:        protoBrand.Name,
+		Description: protoBrand.Description,
+		VideoURL:    protoBrand.VideoUrl,
+		Logo:        protoBrand.Logo,
 	}
 }

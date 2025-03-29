@@ -11,6 +11,7 @@ import (
 	"admin/internal/product"
 	"admin/internal/stat"
 	"admin/internal/user"
+	"admin/migrations"
 	"admin/pkg/db"
 	"admin/pkg/logger"
 
@@ -62,7 +63,7 @@ func main() {
 		logger.Errorf("Error due conn to tcp: %v", err)
 		return
 	}
-
+	migrations.CheckForMigrations()
 	logger.Info("gRPC server is running on :50051")
 
 	grpcServer := AdminApp()
