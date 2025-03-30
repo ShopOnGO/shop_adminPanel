@@ -9,6 +9,7 @@ import (
 	"admin/internal/home"
 	"admin/internal/link"
 	"admin/internal/product"
+	"admin/internal/productVariant"
 	"admin/internal/stat"
 	"admin/internal/user"
 	"admin/migrations"
@@ -35,6 +36,10 @@ func AdminApp() *grpc.Server {
 	brandRepository := brand.NewBrandRepository(db)
 	productRepository := product.NewProductRepository(db)
 	categoryRepository := category.NewCategoryRepository(db)
+	productVariantRepository := productVariant.NewProductVariantRepository(db)
+
+	//validators
+	validator := &productVariant.ProductVariantValidator{}
 
 	// services
 	linkService := link.NewLinkService(linkRepository)
@@ -44,6 +49,7 @@ func AdminApp() *grpc.Server {
 	brandService := brand.NewBrandService(brandRepository)
 	productService := product.NewProductServiceServer(productRepository)
 	categoryService := category.NewCategoryService(categoryRepository)
+	productVariantService := productVariant.NewVariantService(productVariantRepository, validator)
 
 	// registration
 	pb.RegisterUserServiceServer(grpcServer, userService)
@@ -53,6 +59,7 @@ func AdminApp() *grpc.Server {
 	pb.RegisterLinkServiceServer(grpcServer, linkService)
 	pb.RegisterProductServiceServer(grpcServer, productService)
 	pb.RegisterStatServiceServer(grpcServer, statService)
+	pb.RegisterProductVariantServiceServer(grpcServer, productVariantService)
 
 	return grpcServer
 }

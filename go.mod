@@ -3,7 +3,7 @@ module admin
 go 1.23.3
 
 require (
-	github.com/ShopOnGO/admin-proto v0.0.0-20250328142538-00eea8f8031b
+	github.com/ShopOnGO/admin-proto v0.0.0-20250330184913-939f08b67840
 	github.com/sirupsen/logrus v1.9.3
 	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.4
@@ -31,6 +31,7 @@ require (
 
 require (
 	github.com/joho/godotenv v1.5.1
+	github.com/shopspring/decimal v1.4.0
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect

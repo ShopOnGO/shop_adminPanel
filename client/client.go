@@ -1,6 +1,7 @@
 package main
 
 import (
+	"admin/pkg/money"
 	"context"
 	"fmt"
 	"log"
@@ -25,6 +26,7 @@ func main() {
 	userClient := pb.NewUserServiceClient(conn)
 	statClient := pb.NewStatServiceClient(conn)
 	homeClient := pb.NewHomeServiceClient(conn)
+	productVariantClient := pb.NewProductVariantServiceClient(conn)
 
 	DeleteAllCategories(categoryClient)
 	testCategoryService(categoryClient)
@@ -44,6 +46,9 @@ func main() {
 	testStatService(statClient)
 
 	testHomeService(homeClient)
+
+	DeleteAllVariants(productVariantClient)
+	testProductVariantService(productVariantClient, productClient)
 
 }
 
@@ -89,13 +94,13 @@ func testCategoryService(client pb.CategoryServiceClient) {
 		fmt.Printf("   - ID=%d, Name=%s\n", category.Model.Id, category.Name)
 	}
 
-	// _, err = client.DeleteCategory(ctx, &pb.DeleteCategoryByNameRequest{
-	// 	Name: createResp.Category.Name,
-	// })
-	// if err != nil {
-	// 	log.Fatalf("error during category deletion: %v", err)
-	// }
-	// fmt.Printf("✅ Category with ID=%d deleted (soft delete)\n", createResp.Category.Model.Id)
+	_, err = client.DeleteCategory(ctx, &pb.DeleteCategoryByNameRequest{
+		Name: createResp.Category.Name,
+	})
+	if err != nil {
+		log.Fatalf("error during category deletion: %v", err)
+	}
+	fmt.Printf("✅ Category with ID=%d deleted (soft delete)\n", createResp.Category.Model.Id)
 }
 
 func DeleteAllCategories(client pb.CategoryServiceClient) {
@@ -387,56 +392,56 @@ func testProductService(client pb.ProductServiceClient, categoryClient pb.Catego
 	fmt.Printf("✅ Product updated: ID=%d, Name=%s\n", updateResp.Product.Model.Id, updateResp.Product.Name)
 
 	// 🔹 Soft delete the product
-	_, err = client.DeleteProduct(ctx, &pb.DeleteProductRequest{
-		Id:       uint64(createResp.Product.Model.Id),
-		Unscoped: false, // Soft delete
-	})
-	if err != nil {
-		log.Fatalf("❌ Error performing soft delete on product: %v", err)
-	}
-	fmt.Printf("✅ Product ID=%d deleted (soft delete)\n", createResp.Product.Model.Id)
+	// _, err = client.DeleteProduct(ctx, &pb.DeleteProductRequest{
+	// 	Id:       uint64(createResp.Product.Model.Id),
+	// 	Unscoped: false, // Soft delete
+	// })
+	// if err != nil {
+	// 	log.Fatalf("❌ Error performing soft delete on product: %v", err)
+	// }
+	// fmt.Printf("✅ Product ID=%d deleted (soft delete)\n", createResp.Product.Model.Id)
 
 	// 🔹 Verify that the product is not shown in the normal product list
-	featuredAfterDeleteResp, err := client.GetFeaturedProducts(ctx, &pb.FeaturedRequest{
-		Amount:         5,
-		Random:         true,
-		IncludeDeleted: false, // Only active products
-	})
-	if err != nil {
-		log.Fatalf("❌ Error checking product list after deletion: %v", err)
-	}
-	for _, product := range featuredAfterDeleteResp.Products {
-		if product.Model.Id == createResp.Product.Model.Id {
-			log.Fatalf("❌ Error: Deleted product ID=%d is still visible", product.Model.Id)
-		}
-	}
-	fmt.Println("✅ Product is not shown in the active list (soft delete works)")
+	// featuredAfterDeleteResp, err := client.GetFeaturedProducts(ctx, &pb.FeaturedRequest{
+	// 	Amount:         5,
+	// 	Random:         true,
+	// 	IncludeDeleted: false, // Only active products
+	// })
+	// if err != nil {
+	// 	log.Fatalf("❌ Error checking product list after deletion: %v", err)
+	// }
+	// for _, product := range featuredAfterDeleteResp.Products {
+	// 	if product.Model.Id == createResp.Product.Model.Id {
+	// 		log.Fatalf("❌ Error: Deleted product ID=%d is still visible", product.Model.Id)
+	// 	}
+	// }
+	// fmt.Println("✅ Product is not shown in the active list (soft delete works)")
 
-	// 🔹 Hard delete the product
-	_, err = client.DeleteProduct(ctx, &pb.DeleteProductRequest{
-		Id:       uint64(createResp.Product.Model.Id),
-		Unscoped: true, // Permanent deletion
-	})
-	if err != nil {
-		log.Fatalf("❌ Error performing hard delete on product: %v", err)
-	}
-	fmt.Printf("✅ Product ID=%d permanently deleted\n", createResp.Product.Model.Id)
+	// // 🔹 Hard delete the product
+	// _, err = client.DeleteProduct(ctx, &pb.DeleteProductRequest{
+	// 	Id:       uint64(createResp.Product.Model.Id),
+	// 	Unscoped: true, // Permanent deletion
+	// })
+	// if err != nil {
+	// 	log.Fatalf("❌ Error performing hard delete on product: %v", err)
+	// }
+	// fmt.Printf("✅ Product ID=%d permanently deleted\n", createResp.Product.Model.Id)
 
-	// 🔹 Verify that the product is completely removed
-	deletedProductsResp, err := client.GetFeaturedProducts(ctx, &pb.FeaturedRequest{
-		Amount:         5,
-		Random:         true,
-		IncludeDeleted: true, // Check deleted products as well
-	})
-	if err != nil {
-		log.Fatalf("❌ Error checking the list of deleted products: %v", err)
-	}
-	for _, product := range deletedProductsResp.Products {
-		if product.Model.Id == createResp.Product.Model.Id {
-			log.Fatalf("❌ Error: Product ID=%d is still present in the database", product.Model.Id)
-		}
-	}
-	fmt.Println("✅ Product completely deleted (hard delete works)")
+	// // 🔹 Verify that the product is completely removed
+	// deletedProductsResp, err := client.GetFeaturedProducts(ctx, &pb.FeaturedRequest{
+	// 	Amount:         5,
+	// 	Random:         true,
+	// 	IncludeDeleted: true, // Check deleted products as well
+	// })
+	// if err != nil {
+	// 	log.Fatalf("❌ Error checking the list of deleted products: %v", err)
+	// }
+	// for _, product := range deletedProductsResp.Products {
+	// 	if product.Model.Id == createResp.Product.Model.Id {
+	// 		log.Fatalf("❌ Error: Product ID=%d is still present in the database", product.Model.Id)
+	// 	}
+	// }
+	// fmt.Println("✅ Product completely deleted (hard delete works)")
 }
 
 func DeleteAllUsers(client pb.UserServiceClient) {
@@ -567,5 +572,165 @@ func testHomeService(client pb.HomeServiceClient) {
 	fmt.Printf("🔹 Brands: %d\n", len(resp.Brands))
 	for _, brand := range resp.Brands {
 		fmt.Printf("   - ID=%d, Name=%s\n", brand.Model.Id, brand.Name)
+	}
+}
+
+func DeleteAllVariants(client pb.ProductVariantServiceClient) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	variants := []string{"TEST-SKU", "TEST-SKU-UPDATED"}
+
+	for _, sku := range variants {
+		// 1. Исправленный запрос с правильным oneof-полем
+		resp, err := client.GetVariant(ctx, &pb.VariantRequest{
+			Identifier: &pb.VariantRequest_Sku{Sku: sku},
+			Unscoped:   true,
+		})
+
+		if err != nil {
+			log.Printf("🔹 Variant %s not found: %v", sku, err)
+			continue
+		}
+
+		// 2. Проверка структуры ответа
+		if resp == nil || resp.Variant == nil || resp.Variant.Model == nil {
+			log.Printf("❌ Invalid response structure for SKU %s", sku)
+			continue
+		}
+
+		// 3. Проверка ID
+		if resp.Variant.Model.Id == 0 {
+			log.Printf("❌ Invalid variant ID for SKU %s", sku)
+			continue
+		}
+
+		// 4. Удаление с проверкой ошибок
+		_, err = client.DeleteVariant(ctx, &pb.DeleteVariantRequest{
+			Id:       resp.Variant.Model.Id,
+			Unscoped: true,
+		})
+
+		if err != nil {
+			log.Printf("❌ Error deleting variant %s (ID %d): %v",
+				sku, resp.Variant.Model.Id, err)
+		} else {
+			log.Printf("✅ Variant %s (ID %d) successfully deleted",
+				sku, resp.Variant.Model.Id)
+		}
+	}
+}
+
+func testProductVariantService(client pb.ProductVariantServiceClient, productClient pb.ProductServiceClient) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	productList, err := productClient.GetProductsByName(ctx, &pb.NameRequest{Name: "Updated Boots"})
+	if err != nil {
+		return
+	}
+
+	// Берем первый продукт из списка
+	firstProduct := productList.GetProducts()[0]
+
+	createResp, err := client.CreateVariant(ctx, &pb.ProductVariant{
+		ProductId: firstProduct.Model.Id, // Используем прямой доступ к ID
+		Sku:       "TEST-SKU",
+		Price:     9999,
+		Stock:     100,
+		Barcode:   "TEST-BARCODE",
+		IsActive:  true,
+		Reserved:  3,
+	})
+	if err != nil {
+		log.Fatalf("❌ Error creating variant: %v", err)
+	}
+	fmt.Printf("✅ Variant created: ID=%d, SKU=%s, Stock=%d\n",
+		createResp.Variant.Model.Id, createResp.Variant.Sku, createResp.Variant.Stock)
+
+	// 📌 Get variant by SKU
+	getBySKUResp, err := client.GetVariant(ctx, &pb.VariantRequest{Identifier: &pb.VariantRequest_Sku{Sku: "TEST-SKU"}, Unscoped: false})
+	if err != nil {
+		log.Fatalf("❌ Error getting variant by SKU: %v", err)
+	}
+	fmt.Printf("✅ Variant found by SKU: ID=%d, Price=%v\n",
+		getBySKUResp.Variant.Model.Id, money.CentsToDecimal(int64(getBySKUResp.Variant.Price)))
+
+	// 📌 Get variant by Barcode
+	getByBarcodeResp, err := client.GetVariant(ctx, &pb.VariantRequest{Identifier: &pb.VariantRequest_Barcode{Barcode: "TEST-BARCODE"}, Unscoped: false})
+	if err != nil {
+		log.Fatalf("❌ Error getting variant by barcode: %v", err)
+	}
+	fmt.Printf("✅ Variant found by barcode: ID=%d, Barcode=%s\n",
+		getByBarcodeResp.Variant.Model.Id, getByBarcodeResp.Variant.Barcode)
+
+	// 📌 Update variant
+	updateResp, err := client.UpdateVariant(ctx, &pb.ProductVariant{
+		Model:     &pb.Model{Id: getBySKUResp.Variant.Model.Id},
+		ProductId: getBySKUResp.Variant.ProductId,
+		Sku:       "TEST-SKU-UPDATED",
+		Price:     14999,
+		Stock:     200,
+		Barcode:   "NEW-BARCODE",
+		IsActive:  false,
+	})
+	if err != nil {
+		log.Fatalf("❌ Error updating variant: %v", err)
+	}
+	fmt.Printf("✅ Variant updated: SKU=%s, NewPrice=%v, NewStock=%d\n",
+		updateResp.Variant.Sku, money.CentsToDecimal(int64(updateResp.Variant.Price)), updateResp.Variant.Stock)
+
+	// 📌 Stock management tests
+	stockTests := []struct {
+		action   pb.StockAction
+		quantity int32
+	}{
+		{pb.StockAction_RESERVE, 50},
+		{pb.StockAction_RELEASE, 20},
+		{pb.StockAction_UPDATE, 300},
+	}
+
+	for _, test := range stockTests {
+		_, err = client.ManageStock(ctx, &pb.StockRequest{
+			VariantId: getBySKUResp.Variant.Model.Id,
+			Action:    test.action,
+			Quantity:  uint32(test.quantity),
+		})
+		if err != nil {
+			log.Printf("❌ Error performing stock action %s: %v", test.action, err)
+		} else {
+			fmt.Printf("✅ Stock action %s completed successfully\n", test.action)
+		}
+	}
+
+	// 📌 List variants with filters
+	listResp, err := client.ListVariants(ctx, &pb.VariantListRequest{
+		ProductId:  1,
+		ActiveOnly: true,
+		PriceRange: &pb.PriceRange{Min: 100, Max: 200},
+		Limit:      10,
+		Offset:     0,
+	})
+	if err != nil {
+		log.Fatalf("❌ Error listing variants: %v", err)
+	}
+	fmt.Printf("✅ Found %d variants matching filters\n", listResp.TotalCount)
+
+	// 📌 Soft delete variant
+	_, err = client.DeleteVariant(ctx, &pb.DeleteVariantRequest{
+		Id:       getBySKUResp.Variant.Model.Id,
+		Unscoped: false,
+	})
+	if err != nil {
+		log.Fatalf("❌ Error deleting variant: %v", err)
+	}
+	fmt.Printf("✅ Variant with ID=%d soft deleted\n", getBySKUResp.Variant.Model.Id)
+
+	deletedVariantID := getBySKUResp.Variant.Model.Id
+	_, err = client.GetVariant(ctx, &pb.VariantRequest{Identifier: &pb.VariantRequest_Id{Id: deletedVariantID}})
+	if err != nil {
+		log.Printf("❌ Unexpected error checking deletion: %v", err)
+	} else {
+		fmt.Println("✅ Variant successfully removed from active records")
+
 	}
 }

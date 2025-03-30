@@ -1,6 +1,7 @@
 package productVariant
 
 import (
+	"admin/pkg/money"
 	"context"
 	"errors"
 	"fmt"
@@ -91,11 +92,11 @@ func (s *VariantService) UpdateVariant(ctx context.Context, req *pb.ProductVaria
 func (s *VariantService) GetVariant(ctx context.Context, req *pb.VariantRequest) (*pb.VariantResponse, error) {
 	switch {
 	case req.GetSku() != "":
-		return s.getBySKU(req.GetSku())
+		return s.getBySKU(req.GetSku(), req.Unscoped)
 	case req.GetBarcode() != "":
-		return s.getByBarcode(req.GetBarcode())
+		return s.getByBarcode(req.GetBarcode(), req.Unscoped)
 	case req.GetId() != 0:
-		return s.getByID(req.GetId())
+		return s.getByID(req.GetId(), req.Unscoped)
 	default:
 		return &pb.VariantResponse{
 			Error: &pb.ErrorResponse{
@@ -104,8 +105,8 @@ func (s *VariantService) GetVariant(ctx context.Context, req *pb.VariantRequest)
 	}
 }
 
-func (s *VariantService) getByID(id uint32) (*pb.VariantResponse, error) {
-	variant, err := s.ProductVariantRepository.GetByID(uint(id))
+func (s *VariantService) getByID(id uint32, unscoped bool) (*pb.VariantResponse, error) {
+	variant, err := s.ProductVariantRepository.GetByID(uint(id), unscoped)
 	if err != nil {
 		return &pb.VariantResponse{
 			Error: &pb.ErrorResponse{
@@ -115,8 +116,8 @@ func (s *VariantService) getByID(id uint32) (*pb.VariantResponse, error) {
 	return &pb.VariantResponse{Variant: ConvertDBToProto(variant)}, nil
 }
 
-func (s *VariantService) getBySKU(sku string) (*pb.VariantResponse, error) {
-	variant, err := s.ProductVariantRepository.GetBySKU(sku)
+func (s *VariantService) getBySKU(sku string, unscoped bool) (*pb.VariantResponse, error) {
+	variant, err := s.ProductVariantRepository.GetBySKU(sku, unscoped)
 	if err != nil {
 		return &pb.VariantResponse{
 			Error: &pb.ErrorResponse{
@@ -126,8 +127,8 @@ func (s *VariantService) getBySKU(sku string) (*pb.VariantResponse, error) {
 	return &pb.VariantResponse{Variant: ConvertDBToProto(variant)}, nil
 }
 
-func (s *VariantService) getByBarcode(barcode string) (*pb.VariantResponse, error) {
-	variant, err := s.ProductVariantRepository.GetByBarcode(barcode)
+func (s *VariantService) getByBarcode(barcode string, unscoped bool) (*pb.VariantResponse, error) {
+	variant, err := s.ProductVariantRepository.GetByBarcode(barcode, unscoped)
 	if err != nil {
 		return &pb.VariantResponse{
 			Error: &pb.ErrorResponse{
@@ -222,23 +223,30 @@ func (s *VariantService) updateStock(req *pb.StockRequest) (*pb.Error, error) {
 	return &pb.Error{}, nil
 }
 
-func (s *VariantService) DeleteVariant(ctx context.Context, req *pb.DeleteVariantRequest) (*pb.VariantResponse, error) {
+func (s *VariantService) DeleteVariant(ctx context.Context, req *pb.DeleteVariantRequest) (*pb.Error, error) {
 	if req.GetId() == 0 {
-		return &pb.VariantResponse{
+		return &pb.Error{
 			Error: &pb.ErrorResponse{
 				Code:    int32(codes.InvalidArgument),
 				Message: "variant ID required"}}, status.Error(codes.InvalidArgument, "variant ID required")
-
 	}
 
-	if err := s.ProductVariantRepository.SoftDelete(uint(req.GetId())); err != nil {
+	var err error
+	if req.GetUnscoped() {
+		err = s.ProductVariantRepository.HardDelete(uint(req.GetId()))
+	} else {
+		err = s.ProductVariantRepository.SoftDelete(uint(req.GetId()))
+	}
+
+	if err != nil {
 		wrappedErr := fmt.Errorf("delete failed: %v", err)
-		return &pb.VariantResponse{
+		return &pb.Error{
 			Error: &pb.ErrorResponse{
 				Code:    int32(codes.Internal),
-				Message: wrappedErr.Error()}}, status.Error(codes.InvalidArgument, wrappedErr.Error())
+				Message: wrappedErr.Error()}}, status.Error(codes.Internal, wrappedErr.Error()) // поправил на Internal
 	}
-	return &pb.VariantResponse{}, nil
+
+	return &pb.Error{}, nil
 }
 
 // Конвертационные функции
@@ -261,10 +269,10 @@ func ConvertDBToProto(v *ProductVariant) *pb.ProductVariant {
 		},
 		ProductId:  uint32(v.ProductID),
 		Sku:        v.SKU,
-		Price:      v.Price,
-		Discount:   v.Discount,
-		Stock:      uint32(v.Stock),
-		Reserved:   uint32(v.ReservedStock),
+		Price:      uint32(money.DecimalToCents(v.Price)),
+		Discount:   uint32(money.DecimalToCents(v.Discount)),
+		Stock:      v.Stock,
+		Reserved:   v.ReservedStock,
 		Rating:     uint32(v.Rating),
 		Sizes:      v.Sizes,
 		Colors:     v.Colors,
@@ -282,50 +290,75 @@ func ConvertProtoToDB(p *pb.ProductVariant) *ProductVariant {
 		return nil
 	}
 
-	var model gorm.Model
-	if p.Model != nil {
-		model = gorm.Model{
-			ID: uint(p.Model.Id),
-			CreatedAt: func() time.Time {
-				if p.Model.CreatedAt != nil {
-					return p.Model.CreatedAt.AsTime()
-				}
-				return time.Time{}
-			}(),
-			UpdatedAt: func() time.Time {
-				if p.Model.UpdatedAt != nil {
-					return p.Model.UpdatedAt.AsTime()
-				}
-				return time.Time{}
-			}(),
-			DeletedAt: gorm.DeletedAt{
-				Time: func() time.Time {
-					if p.Model.DeletedAt != nil {
-						return p.Model.DeletedAt.AsTime()
-					}
-					return time.Time{}
-				}(),
-				Valid: p.Model.DeletedAt != nil,
-			},
-		}
-	}
+	// // Валидация обязательных полей
+	// if p.GetProductId() == 0 {
+	// 	log.Printf("❌ Missing required field: ProductId")
+	// 	return nil
+	// }
+	// if p.GetSku() == "" {
+	// 	log.Printf("❌ Missing required field: SKU")
+	// 	return nil
+	// }
+	// if p.GetPrice() == 0 {
+	// 	log.Printf("❌ Missing required field: Price")
+	// 	return nil
+	// }
+
 	return &ProductVariant{
-		Model:         model,
+		Model:         convertModel(p.Model),
 		ProductID:     uint(p.GetProductId()),
 		SKU:           p.GetSku(),
-		Price:         p.GetPrice(),
-		Discount:      p.GetDiscount(),
+		Price:         money.CentsToDecimal(int64(p.GetPrice())),
+		Discount:      money.CentsToDecimal(int64(p.Discount)),
 		ReservedStock: p.GetReserved(),
 		Stock:         p.GetStock(),
-		Sizes:         p.GetSizes(),
-		Colors:        p.GetColors(),
+		Rating:        uint(p.Rating),
+		Sizes:         safeGetUint32Slice(p.Sizes),
+		Colors:        safeGetStringSlice(p.Colors),
 		Material:      p.GetMaterial(),
 		Barcode:       p.GetBarcode(),
 		IsActive:      p.GetIsActive(),
-		Images:        p.GetImages(),
-		MinOrder:      uint(p.GetMinOrder()),
+		Images:        safeGetStringSlice(p.Images),
+		MinOrder:      uint(p.MinOrder),
 		Dimensions:    p.GetDimensions(),
 	}
+}
+
+// Вспомогательные функции
+func safeGetUint32Slice(s []uint32) []uint32 {
+	if s != nil {
+		return s
+	}
+	return []uint32{}
+}
+
+func safeGetStringSlice(s []string) []string {
+	if s != nil {
+		return s
+	}
+	return []string{}
+}
+
+func convertModel(m *pb.Model) gorm.Model {
+	if m == nil {
+		return gorm.Model{}
+	}
+	return gorm.Model{
+		ID:        uint(m.Id),
+		CreatedAt: safeGetTime(m.CreatedAt),
+		UpdatedAt: safeGetTime(m.UpdatedAt),
+		DeletedAt: gorm.DeletedAt{
+			Time:  safeGetTime(m.DeletedAt),
+			Valid: m.DeletedAt != nil,
+		},
+	}
+}
+
+func safeGetTime(ts *timestamppb.Timestamp) time.Time {
+	if ts != nil {
+		return ts.AsTime()
+	}
+	return time.Time{}
 }
 
 func convertVariantsToProto(variants []ProductVariant) []*pb.ProductVariant {

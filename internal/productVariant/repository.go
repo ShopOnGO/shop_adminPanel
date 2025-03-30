@@ -3,6 +3,7 @@ package productVariant
 import (
 	"admin/pkg/db"
 	"errors"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -27,17 +28,25 @@ func (repo *ProductVariantRepository) Create(variant *ProductVariant) (*ProductV
 	return variant, nil
 }
 
-// GetBySKU возвращает вариант по артикулу
-func (repo *ProductVariantRepository) GetBySKU(sku string) (*ProductVariant, error) {
+func (repo *ProductVariantRepository) GetBySKU(sku string, unscoped bool) (*ProductVariant, error) {
 	var variant ProductVariant
-	result := repo.Database.DB.
-		Where("sku = ?", sku).
-		First(&variant)
+	db := repo.Database.DB
+
+	if unscoped {
+		db = db.Unscoped()
+	}
+
+	result := db.Where("sku = ?", sku).First(&variant)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, nil
+		return nil, gorm.ErrRecordNotFound
 	}
-	return &variant, result.Error
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &variant, nil
 }
 
 // GetByProductID возвращает все варианты для продукта
@@ -105,11 +114,15 @@ func (repo *ProductVariantRepository) GetActive() ([]ProductVariant, error) {
 }
 
 // GetByID возвращает вариант по его ID
-func (repo *ProductVariantRepository) GetByID(id uint) (*ProductVariant, error) {
+func (repo *ProductVariantRepository) GetByID(id uint, unscoped bool) (*ProductVariant, error) {
 	var variant ProductVariant
-	result := repo.Database.DB.
-		Where("id = ?", id).
-		First(&variant)
+	db := repo.Database.DB
+
+	if unscoped {
+		db = db.Unscoped()
+	}
+
+	result := db.Where("id = ?", id).First(&variant)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
@@ -118,11 +131,15 @@ func (repo *ProductVariantRepository) GetByID(id uint) (*ProductVariant, error) 
 }
 
 // GetByBarcode поиск по штрихкоду
-func (repo *ProductVariantRepository) GetByBarcode(barcode string) (*ProductVariant, error) {
+func (repo *ProductVariantRepository) GetByBarcode(barcode string, unscoped bool) (*ProductVariant, error) {
 	var variant ProductVariant
-	result := repo.Database.DB.
-		Where("barcode = ?", barcode).
-		First(&variant)
+	db := repo.Database.DB
+
+	if unscoped {
+		db = db.Unscoped()
+	}
+
+	result := db.Where("barcode = ?", barcode).First(&variant)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
@@ -158,6 +175,13 @@ func (repo *ProductVariantRepository) Update(variant *ProductVariant) (*ProductV
 // SoftDelete мягкое удаление
 func (repo *ProductVariantRepository) SoftDelete(id uint) error {
 	return repo.Database.DB.Delete(&ProductVariant{}, id).Error
+}
+func (repo *ProductVariantRepository) HardDelete(id uint) error {
+	if err := repo.Database.DB.Unscoped().Delete(&ProductVariant{}, id).Error; err != nil {
+		return fmt.Errorf("failed to delete variant: %w", err)
+	}
+
+	return nil
 }
 
 // GetAvailableStock возвращает доступное количество (Stock - ReservedStock)
