@@ -100,7 +100,7 @@ func (s *BrandService) FindBrandByID(ctx context.Context, req *pb.FindBrandByIDR
 	return &pb.BrandResponse{Brand: ConvertDBToProto(brand)}, nil
 }
 
-func (s *BrandService) UpdateBrand(ctx context.Context, req *pb.Brand) (*pb.BrandResponse, error) {
+func (s *BrandService) UpdateBrand(ctx context.Context, req *pb.UpdateBrandRequest) (*pb.BrandResponse, error) {
 	if req.Name == "" {
 		return &pb.BrandResponse{
 			Error: &pb.ErrorResponse{
@@ -109,7 +109,7 @@ func (s *BrandService) UpdateBrand(ctx context.Context, req *pb.Brand) (*pb.Bran
 			}}, status.Errorf(codes.InvalidArgument, "brand name is required for update")
 	}
 
-	existingBrand, err := s.BrandRepository.FindBrandByID(uint(req.Model.Id))
+	existingBrand, err := s.BrandRepository.FindBrandByID(uint(req.Id))
 	if err != nil {
 		return &pb.BrandResponse{
 			Error: &pb.ErrorResponse{

@@ -148,8 +148,8 @@ func testBrandService(client pb.BrandServiceClient) {
 	}
 	fmt.Printf("✅ Brand found: ID=%d, Name=%s\n", getResp.Brand.Model.Id, getResp.Brand.Name)
 
-	updateResp, err := client.UpdateBrand(ctx, &pb.Brand{
-		Model:       &pb.Model{Id: getResp.Brand.Model.Id},
+	updateResp, err := client.UpdateBrand(ctx, &pb.UpdateBrandRequest{
+		Id:          uint64(getResp.Brand.Model.Id),
 		Name:        "Nike - Updated",
 		Description: "Updated brand description",
 	})
