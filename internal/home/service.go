@@ -7,6 +7,7 @@ import (
 	"admin/internal/category"
 	"admin/internal/product"
 	"admin/pkg/di"
+	"admin/pkg/logger"
 
 	pb "github.com/ShopOnGO/admin-proto/pkg/service"
 
@@ -31,22 +32,14 @@ func NewHomeService(categoryRepository di.ICategoryRepository, productsRepositor
 func (s *HomeService) GetHomeData(ctx context.Context, req *pb.EmptyRequest) (*pb.HomeDataResponse, error) {
 	categories, err := s.CategoryRepository.GetFeaturedCategories(5, false)
 	if err != nil {
-		return &pb.HomeDataResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			},
-		}, status.Errorf(codes.Internal, err.Error())
+		logger.Errorf("failed to delete category: %v", err)
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	featuredProducts, err := s.ProductsRepository.GetFeaturedProducts(10, true, false) // ONLY TRUE WHILE POPULARITY IS UNDEF
 	if err != nil {
-		return &pb.HomeDataResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			},
-		}, status.Errorf(codes.Internal, err.Error())
+		logger.Errorf("failed to get products: %v", err)
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	// promotions, err := s.promoRepo.GetActivePromotions()
@@ -55,12 +48,8 @@ func (s *HomeService) GetHomeData(ctx context.Context, req *pb.EmptyRequest) (*p
 	// }
 	brands, err := s.BrandRepository.GetFeaturedBrands(5, false)
 	if err != nil {
-		return &pb.HomeDataResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			},
-		}, status.Errorf(codes.Internal, err.Error())
+		logger.Errorf("failed to get brands: %v", err)
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	productsPtrs := make([]*pb.Product, 0, len(featuredProducts))

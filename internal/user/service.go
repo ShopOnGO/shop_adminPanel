@@ -1,6 +1,7 @@
 package user
 
 import (
+	"admin/pkg/logger"
 	"context"
 	"time"
 
@@ -24,17 +25,15 @@ func NewUserService(userRepository *UserRepository) *UserService {
 func (s *UserService) CreateUser(ctx context.Context, req *pb.User) (*pb.UserResponse, error) {
 	if req.Email == "" {
 		errMsg := "email is required"
-		return &pb.UserResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.InvalidArgument), Message: errMsg},
-		}, status.Error(codes.InvalidArgument, errMsg)
+		logger.Errorf("Failed to create user: %v", errMsg)
+		return nil, status.Error(codes.InvalidArgument, errMsg)
 	}
 
 	createdUser, err := s.UserRepository.Create(ConvertProtoToDB(req))
 	if err != nil {
 		errMsg := "failed to create user: " + err.Error()
-		return &pb.UserResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.Internal), Message: errMsg},
-		}, status.Error(codes.Internal, errMsg)
+		logger.Errorf("fail : %v ", errMsg)
+		return nil, status.Error(codes.Internal, errMsg)
 	}
 
 	return &pb.UserResponse{User: ConvertDBToProto(createdUser)}, nil
@@ -43,17 +42,14 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.User) (*pb.UserRes
 func (s *UserService) FindUserByEmail(ctx context.Context, req *pb.EmailRequest) (*pb.UserResponse, error) {
 	if req.Email == "" {
 		errMsg := "email cannot be empty"
-		return &pb.UserResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.InvalidArgument), Message: errMsg},
-		}, status.Error(codes.InvalidArgument, errMsg)
+		return nil, status.Error(codes.InvalidArgument, errMsg)
 	}
 
 	user, err := s.UserRepository.FindByEmail(req.Email)
 	if err != nil {
 		errMsg := "user not found: " + err.Error()
-		return &pb.UserResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.NotFound), Message: errMsg},
-		}, status.Error(codes.NotFound, errMsg)
+		logger.Error(errMsg)
+		return nil, status.Error(codes.NotFound, errMsg)
 	}
 
 	return &pb.UserResponse{User: ConvertDBToProto(user)}, nil
@@ -62,17 +58,15 @@ func (s *UserService) FindUserByEmail(ctx context.Context, req *pb.EmailRequest)
 func (s *UserService) UpdateUser(ctx context.Context, req *pb.User) (*pb.UserResponse, error) {
 	if req.Model.Id == 0 {
 		errMsg := "user ID is required for update"
-		return &pb.UserResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.InvalidArgument), Message: errMsg},
-		}, status.Error(codes.InvalidArgument, errMsg)
+		logger.Error(errMsg)
+		return nil, status.Error(codes.InvalidArgument, errMsg)
 	}
 
 	updatedUser, err := s.UserRepository.Update(ConvertProtoToDB(req))
 	if err != nil {
 		errMsg := "failed to update user: " + err.Error()
-		return &pb.UserResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.Internal), Message: errMsg},
-		}, status.Error(codes.Internal, errMsg)
+		logger.Error(errMsg)
+		return nil, status.Error(codes.Internal, errMsg)
 	}
 
 	return &pb.UserResponse{User: ConvertDBToProto(updatedUser)}, nil
@@ -81,21 +75,15 @@ func (s *UserService) UpdateUser(ctx context.Context, req *pb.User) (*pb.UserRes
 func (s *UserService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.Error, error) {
 	if req.Id == 0 {
 		errMsg := "user ID is required for deletion"
-		return &pb.Error{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: errMsg,
-			}}, status.Error(codes.InvalidArgument, errMsg)
+		logger.Error(errMsg)
+		return nil, status.Error(codes.InvalidArgument, errMsg)
 	}
 
 	err := s.UserRepository.Delete(uint(req.Id), req.Unscoped)
 	if err != nil {
 		errMsg := "failed to delete user: " + err.Error()
-		return &pb.Error{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: errMsg,
-			}}, status.Error(codes.Internal, errMsg)
+		logger.Error(errMsg)
+		return nil, status.Error(codes.Internal, errMsg)
 	}
 
 	return &pb.Error{}, nil

@@ -3,6 +3,7 @@ package product
 import (
 	"admin/internal/brand"
 	"admin/internal/category"
+	"admin/pkg/logger"
 	"context"
 	"time"
 
@@ -24,42 +25,25 @@ func NewProductServiceServer(productRepository *ProductRepository) *ProductServi
 }
 
 func (s *ProductServiceServer) CreateProduct(ctx context.Context, req *pb.Product) (*pb.ProductResponse, error) {
-	if req.Name == "" || req.CategoryId == 0 {
-		return &pb.ProductResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: "product name and category ID are required",
-			}}, status.Errorf(codes.InvalidArgument, "product name and category ID are required")
-	}
+
 	product, err := s.ProductRepository.Create(ConvertProtoToDB(req))
 
 	if err != nil {
-		return &pb.ProductResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			}}, status.Errorf(codes.Internal, err.Error())
+		logger.Errorf("Failed to create product: %v", err)
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	return &pb.ProductResponse{Product: ConvertDBToProto(product)}, nil
 }
 
 func (s *ProductServiceServer) GetProductsByCategory(ctx context.Context, req *pb.CategoryRequest) (*pb.ProductList, error) {
 	if req.CategoryId == 0 {
-		return &pb.ProductList{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: "category ID is required",
-			},
-		}, status.Errorf(codes.InvalidArgument, "category ID is required")
+		logger.Error("category id can't be null")
+		return nil, status.Errorf(codes.InvalidArgument, "category ID is required")
 	}
 	products, err := s.ProductRepository.GetByCategoryID(uint(req.CategoryId))
 	if err != nil {
-		return &pb.ProductList{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			},
-		}, status.Errorf(codes.Internal, err.Error())
+		logger.Errorf("Failed to get by CategoryId: %v", err)
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	productPtrs := make([]*pb.Product, 0, len(products))
@@ -73,19 +57,13 @@ func (s *ProductServiceServer) GetProductsByCategory(ctx context.Context, req *p
 
 func (s *ProductServiceServer) GetProductsByName(ctx context.Context, req *pb.NameRequest) (*pb.ProductList, error) {
 	if req.Name == "" {
-		return &pb.ProductList{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: "product name cannot be empty",
-			}}, status.Errorf(codes.InvalidArgument, "product name cannot be empty")
+		logger.Error("Name can't be empty")
+		return nil, status.Errorf(codes.InvalidArgument, "product name cannot be empty")
 	}
 	products, err := s.ProductRepository.GetByName(req.Name)
 	if err != nil {
-		return &pb.ProductList{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			}}, status.Errorf(codes.Internal, err.Error())
+		logger.Errorf("Failed to get by name : %v", err)
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	productPtrs := make([]*pb.Product, 0, len(products))
 
@@ -97,22 +75,11 @@ func (s *ProductServiceServer) GetProductsByName(ctx context.Context, req *pb.Na
 }
 
 func (s *ProductServiceServer) GetFeaturedProducts(ctx context.Context, req *pb.FeaturedRequest) (*pb.ProductList, error) {
-	if req.Amount == 0 {
-		return &pb.ProductList{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: "amount must be greater than zero",
-			}}, status.Errorf(codes.InvalidArgument, "amount must be greater than zero")
-	}
 
-	// Передаем IncludeDeleted в репозиторий
 	products, err := s.ProductRepository.GetFeaturedProducts(uint(req.Amount), req.Random, req.IncludeDeleted)
 	if err != nil {
-		return &pb.ProductList{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			}}, status.Errorf(codes.Internal, err.Error())
+		logger.Errorf("Failed to get Faetured: %v", err)
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	productPtrs := make([]*pb.Product, 0, len(products))
@@ -125,37 +92,21 @@ func (s *ProductServiceServer) GetFeaturedProducts(ctx context.Context, req *pb.
 }
 
 func (s *ProductServiceServer) UpdateProduct(ctx context.Context, req *pb.Product) (*pb.ProductResponse, error) {
-	if req.Model.Id == 0 {
-		return &pb.ProductResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: "product ID is required for update",
-			},
-		}, status.Errorf(codes.InvalidArgument, "product ID is required for update")
-	}
+
 	product, err := s.ProductRepository.Update(ConvertProtoToDB(req))
 	if err != nil {
-		return &pb.ProductResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			},
-		}, status.Errorf(codes.Internal, err.Error())
+		logger.Errorf("Failed to update product: %v", err)
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	return &pb.ProductResponse{Product: ConvertDBToProto(product)}, nil
 }
 
 func (s *ProductServiceServer) DeleteProduct(ctx context.Context, req *pb.DeleteProductRequest) (*pb.Error, error) {
-	if req.Id == 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "product ID is required for deletion")
-	}
 
 	err := s.ProductRepository.Delete(uint(req.Id), req.Unscoped) // Передаем Unscoped в репозиторий
 	if err != nil {
-		return &pb.Error{Error: &pb.ErrorResponse{
-			Code:    int32(codes.Internal),
-			Message: err.Error(),
-		}}, status.Errorf(codes.Internal, err.Error())
+		logger.Errorf("Failed to delete product : %v", err)
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	return &pb.Error{}, nil
 }

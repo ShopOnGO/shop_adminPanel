@@ -1,6 +1,7 @@
 package productVariant
 
 import (
+	"admin/pkg/logger"
 	"admin/pkg/money"
 	"context"
 	"errors"
@@ -39,20 +40,15 @@ func (s *VariantService) CreateVariant(ctx context.Context, req *pb.ProductVaria
 	dbVariant := ConvertProtoToDB(req)
 
 	if err := s.validator.Validate(dbVariant); err != nil {
-		return &pb.VariantResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			}}, status.Errorf(codes.Internal, err.Error())
+		logger.Errorf("Validation error: %v", err)
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	createdVariant, err := s.ProductVariantRepository.Create(dbVariant)
 	if err != nil {
 		wrappedErr := fmt.Errorf("create variant failed: %w", err)
-		return &pb.VariantResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: wrappedErr.Error()}}, status.Error(codes.Internal, err.Error())
+		logger.Error(wrappedErr)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &pb.VariantResponse{Variant: ConvertDBToProto(createdVariant)}, nil
@@ -61,29 +57,23 @@ func (s *VariantService) CreateVariant(ctx context.Context, req *pb.ProductVaria
 func (s *VariantService) UpdateVariant(ctx context.Context, req *pb.ProductVariant) (*pb.VariantResponse, error) {
 	if req.GetModel().Id == 0 {
 		wrappedErr := fmt.Errorf("variant ID is required")
-		return &pb.VariantResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: wrappedErr.Error()}}, status.Error(codes.Internal, "variant ID is required")
+		logger.Error(wrappedErr)
+		return nil, status.Error(codes.Internal, "variant ID is required")
 	}
 
 	dbVariant := ConvertProtoToDB(req)
 
 	if err := s.validator.Validate(dbVariant); err != nil {
 		wrappedErr := fmt.Errorf("validation failed: %v", err)
-		return &pb.VariantResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: wrappedErr.Error()}}, status.Error(codes.InvalidArgument, err.Error())
+		logger.Error(wrappedErr)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	updatedVariant, err := s.ProductVariantRepository.Update(dbVariant)
 	if err != nil {
 		wrappedErr := fmt.Errorf("update failed: %v", err)
-		return &pb.VariantResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: wrappedErr.Error()}}, status.Error(codes.InvalidArgument, err.Error())
+		logger.Error(wrappedErr)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	return &pb.VariantResponse{Variant: ConvertDBToProto(updatedVariant)}, nil
@@ -98,20 +88,16 @@ func (s *VariantService) GetVariant(ctx context.Context, req *pb.VariantRequest)
 	case req.GetId() != 0:
 		return s.getByID(req.GetId(), req.Unscoped)
 	default:
-		return &pb.VariantResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: "identifier required (id, sku or barcode)"}}, status.Error(codes.InvalidArgument, "identifier required (id, sku or barcode)")
+		logger.Error("identifier required (id, sku or barcode)")
+		return nil, status.Error(codes.InvalidArgument, "identifier required (id, sku or barcode)")
 	}
 }
 
 func (s *VariantService) getByID(id uint32, unscoped bool) (*pb.VariantResponse, error) {
 	variant, err := s.ProductVariantRepository.GetByID(uint(id), unscoped)
 	if err != nil {
-		return &pb.VariantResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.NotFound),
-				Message: "variant not found"}}, status.Error(codes.InvalidArgument, err.Error())
+		logger.Errorf("Failed to find product by id: %v", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	return &pb.VariantResponse{Variant: ConvertDBToProto(variant)}, nil
 }
@@ -119,10 +105,8 @@ func (s *VariantService) getByID(id uint32, unscoped bool) (*pb.VariantResponse,
 func (s *VariantService) getBySKU(sku string, unscoped bool) (*pb.VariantResponse, error) {
 	variant, err := s.ProductVariantRepository.GetBySKU(sku, unscoped)
 	if err != nil {
-		return &pb.VariantResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.NotFound),
-				Message: "variant not found"}}, status.Error(codes.InvalidArgument, err.Error())
+		logger.Errorf("Failed to find product by SKU: %v", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	return &pb.VariantResponse{Variant: ConvertDBToProto(variant)}, nil
 }
@@ -130,10 +114,8 @@ func (s *VariantService) getBySKU(sku string, unscoped bool) (*pb.VariantRespons
 func (s *VariantService) getByBarcode(barcode string, unscoped bool) (*pb.VariantResponse, error) {
 	variant, err := s.ProductVariantRepository.GetByBarcode(barcode, unscoped)
 	if err != nil {
-		return &pb.VariantResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.NotFound),
-				Message: "variant not found"}}, status.Error(codes.InvalidArgument, err.Error())
+		logger.Errorf("Failed to find product by Barcode: %v", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	return &pb.VariantResponse{Variant: ConvertDBToProto(variant)}, nil
 }
@@ -152,11 +134,8 @@ func (s *VariantService) ListVariants(ctx context.Context, req *pb.VariantListRe
 	variants, err := s.ProductVariantRepository.GetByFilters(filters, int(req.GetLimit()), int(req.GetOffset()))
 	if err != nil {
 		wrappedErr := fmt.Errorf("fetch failed: %v", err)
-		return &pb.VariantListResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: wrappedErr.Error()},
-		}, status.Error(codes.InvalidArgument, wrappedErr.Error())
+		logger.Error(wrappedErr)
+		return nil, status.Error(codes.InvalidArgument, wrappedErr.Error())
 	}
 
 	return &pb.VariantListResponse{
@@ -174,27 +153,20 @@ func (s *VariantService) ManageStock(ctx context.Context, req *pb.StockRequest) 
 	case pb.StockAction_UPDATE:
 		return s.updateStock(req)
 	default:
-		return &pb.Error{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: "unknown stock action",
-			}}, status.Error(codes.InvalidArgument, "invalid stock action")
+		logger.Error("invalid stock action")
+		return nil, status.Error(codes.InvalidArgument, "invalid stock action")
 	}
 }
 
 func (s *VariantService) reserveStock(req *pb.StockRequest) (*pb.Error, error) {
 	if err := s.ProductVariantRepository.ReserveStock(uint(req.GetVariantId()), uint32(req.GetQuantity())); err != nil {
 		if errors.Is(err, ErrInsufficientStock) {
-			return &pb.Error{Error: &pb.ErrorResponse{
-				Code:    int32(codes.FailedPrecondition),
-				Message: err.Error(),
-			}}, status.Error(codes.FailedPrecondition, err.Error())
+			logger.Error(ErrInsufficientStock)
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
 		}
 		wrappedErr := fmt.Errorf("reserve failed: %v", err)
-		return &pb.Error{Error: &pb.ErrorResponse{
-			Code:    int32(codes.Internal),
-			Message: wrappedErr.Error(),
-		}}, status.Error(codes.InvalidArgument, wrappedErr.Error())
+		logger.Error(wrappedErr)
+		return nil, status.Error(codes.InvalidArgument, wrappedErr.Error())
 	}
 	return &pb.Error{}, nil
 }
@@ -202,11 +174,8 @@ func (s *VariantService) reserveStock(req *pb.StockRequest) (*pb.Error, error) {
 func (s *VariantService) releaseStock(req *pb.StockRequest) (*pb.Error, error) {
 	if err := s.ProductVariantRepository.ReleaseStock(uint(req.GetVariantId()), uint32(req.GetQuantity())); err != nil {
 		wrappedErr := fmt.Errorf("release failed: %v", err)
-		return &pb.Error{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: wrappedErr.Error()},
-		}, status.Error(codes.Internal, wrappedErr.Error())
+		logger.Error(wrappedErr)
+		return nil, status.Error(codes.Internal, wrappedErr.Error())
 	}
 	return &pb.Error{}, nil
 }
@@ -214,21 +183,16 @@ func (s *VariantService) releaseStock(req *pb.StockRequest) (*pb.Error, error) {
 func (s *VariantService) updateStock(req *pb.StockRequest) (*pb.Error, error) {
 	if err := s.ProductVariantRepository.UpdateStock(uint(req.GetVariantId()), req.GetQuantity()); err != nil {
 		wrappedErr := fmt.Errorf("update failed: %v", err)
-		return &pb.Error{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: wrappedErr.Error()},
-		}, status.Error(codes.InvalidArgument, err.Error())
+		logger.Error(wrappedErr)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	return &pb.Error{}, nil
 }
 
 func (s *VariantService) DeleteVariant(ctx context.Context, req *pb.DeleteVariantRequest) (*pb.Error, error) {
 	if req.GetId() == 0 {
-		return &pb.Error{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.InvalidArgument),
-				Message: "variant ID required"}}, status.Error(codes.InvalidArgument, "variant ID required")
+		logger.Error("variant ID required")
+		return nil, status.Error(codes.InvalidArgument, "variant ID required")
 	}
 
 	var err error

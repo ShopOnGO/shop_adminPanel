@@ -1,8 +1,8 @@
 package category
 
 import (
+	"admin/pkg/logger"
 	"context"
-	"fmt"
 	"time"
 
 	pb "github.com/ShopOnGO/admin-proto/pkg/service"
@@ -23,18 +23,13 @@ func NewCategoryService(categoryRepository *CategoryRepository) *CategoryService
 }
 
 func (s *CategoryService) CreateCategory(ctx context.Context, req *pb.CreateCategoryRequest) (*pb.CreateCategoryResponse, error) {
-	if req.Name == "" {
-		return &pb.CreateCategoryResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.InvalidArgument), Message: "category name is required"},
-		}, status.Error(codes.InvalidArgument, "category name is required")
-	}
 
 	createdCategory, err := s.CategoryRepository.Create(&Category{
 		Name:        req.Name,
 		Description: req.Description,
 	})
 	if err != nil {
-		fmt.Println(err)
+		logger.Errorf("failed to create category: %v", err)
 		return nil, status.Error(codes.Internal, "failed to create category")
 	}
 
@@ -45,6 +40,7 @@ func (s *CategoryService) CreateCategory(ctx context.Context, req *pb.CreateCate
 func (s *CategoryService) GetFeaturedCategories(ctx context.Context, req *pb.GetFeaturedCategoriesRequest) (*pb.GetFeaturedCategoriesResponse, error) {
 	categories, err := s.CategoryRepository.GetFeaturedCategories(int(req.Amount), req.Unscoped)
 	if err != nil {
+		logger.Errorf("failed to get categories: %v", err.Error())
 		return nil, status.Error(codes.Internal, "failed to get categories")
 	}
 
@@ -61,6 +57,7 @@ func (s *CategoryService) GetFeaturedCategories(ctx context.Context, req *pb.Get
 func (s *CategoryService) FindCategoryByName(ctx context.Context, req *pb.FindCategoryByNameRequest) (*pb.FindCategoryByNameResponse, error) {
 	category, err := s.CategoryRepository.FindByName(req.Name)
 	if err != nil {
+		logger.Errorf("category not found: %v", err)
 		return nil, status.Error(codes.NotFound, "category not found")
 	}
 
@@ -69,17 +66,11 @@ func (s *CategoryService) FindCategoryByName(ctx context.Context, req *pb.FindCa
 }
 
 func (s *CategoryService) FindCategoryByID(ctx context.Context, req *pb.FindCategoryByIDRequest) (*pb.FindCategoryByIDResponse, error) {
-	if req.Id == 0 {
-		return &pb.FindCategoryByIDResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.InvalidArgument), Message: "invalid category ID"},
-		}, status.Error(codes.InvalidArgument, "invalid category ID")
-	}
 
 	category, err := s.CategoryRepository.FindCategoryByID(uint(req.Id))
 	if err != nil {
-		return &pb.FindCategoryByIDResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.NotFound), Message: "category not found"},
-		}, status.Error(codes.NotFound, "category not found")
+		logger.Errorf("FindCategoryByID error: category not found (id: %d)", req.Id)
+		return nil, status.Error(codes.NotFound, "category not found")
 	}
 
 	return &pb.FindCategoryByIDResponse{
@@ -87,17 +78,11 @@ func (s *CategoryService) FindCategoryByID(ctx context.Context, req *pb.FindCate
 }
 
 func (s *CategoryService) UpdateCategory(ctx context.Context, req *pb.UpdateCategoryRequest) (*pb.UpdateCategoryResponse, error) {
-	if req.Id == 0 {
-		return &pb.UpdateCategoryResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.InvalidArgument), Message: "category ID is required"},
-		}, status.Error(codes.InvalidArgument, "category ID is required")
-	}
 
 	category, err := s.CategoryRepository.FindCategoryByID(uint(req.Id))
 	if err != nil {
-		return &pb.UpdateCategoryResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.NotFound), Message: "category not found"},
-		}, status.Error(codes.NotFound, "category not found")
+		logger.Error("category not found")
+		return nil, status.Error(codes.NotFound, "category not found")
 	}
 
 	if req.Name != "" {
@@ -109,9 +94,8 @@ func (s *CategoryService) UpdateCategory(ctx context.Context, req *pb.UpdateCate
 
 	updatedCategory, err := s.CategoryRepository.Update(category)
 	if err != nil {
-		return &pb.UpdateCategoryResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.Internal), Message: "failed to update category"},
-		}, status.Error(codes.Internal, "failed to update category")
+		logger.Errorf("failed to update category: %v", err)
+		return nil, status.Error(codes.Internal, "failed to update category")
 	}
 
 	return &pb.UpdateCategoryResponse{
@@ -122,9 +106,8 @@ func (s *CategoryService) DeleteCategory(ctx context.Context, req *pb.DeleteCate
 
 	err := s.CategoryRepository.Delete(req.Name, req.Unscoped)
 	if err != nil {
-		return &pb.DeleteCategoryResponse{
-			Error: &pb.ErrorResponse{Code: int32(codes.Internal), Message: "failed to delete category"},
-		}, status.Error(codes.Internal, "failed to delete category")
+		logger.Errorf("failed to delete categoryЖ %v", err)
+		return nil, status.Error(codes.Internal, "failed to delete category")
 	}
 
 	return &pb.DeleteCategoryResponse{}, nil

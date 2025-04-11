@@ -1,6 +1,7 @@
 package link
 
 import (
+	"admin/pkg/logger"
 	"context"
 	"math/rand"
 
@@ -34,12 +35,8 @@ func (s *LinkService) Create(ctx context.Context, req *pb.CreateLinkRequest) (*p
 	}
 	newLink, err := s.LinkRepository.Create(link)
 	if err != nil {
-		return &pb.CreateLinkResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			},
-		}, status.Errorf(codes.Internal, ErrCreateLink, err)
+		logger.Errorf("failed to create link: %v ", err)
+		return nil, status.Errorf(codes.Internal, ErrCreateLink, err)
 	}
 	return &pb.CreateLinkResponse{Link: ConvertToProtoLink(newLink)}, nil
 }
@@ -51,12 +48,8 @@ func (s *LinkService) Update(ctx context.Context, req *pb.UpdateLinkRequest) (*p
 		Hash:  req.Hash,
 	})
 	if err != nil {
-		return &pb.UpdateLinkResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			},
-		}, status.Errorf(codes.Internal, ErrUpdateLink, err)
+		logger.Errorf("failed to update link: %v", err)
+		return nil, status.Errorf(codes.Internal, ErrUpdateLink, err)
 	}
 	return &pb.UpdateLinkResponse{Link: ConvertToProtoLink(updatedLink)}, nil
 }
@@ -65,12 +58,8 @@ func (s *LinkService) Delete(ctx context.Context, req *pb.DeleteLinkRequest) (*p
 	var err error
 	err = s.LinkRepository.Delete(uint(req.Id), req.Unscoped)
 	if err != nil {
-		return &pb.DeleteLinkResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			},
-		}, status.Errorf(codes.Internal, "failed to delete link: %v", err)
+		logger.Errorf("Failed to delete link: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to delete link: %v", err)
 	}
 
 	return &pb.DeleteLinkResponse{}, nil
@@ -79,12 +68,8 @@ func (s *LinkService) Delete(ctx context.Context, req *pb.DeleteLinkRequest) (*p
 func (s *LinkService) GetLinkByHash(ctx context.Context, req *pb.GetLinkByHashRequest) (*pb.GetLinkByHashResponse, error) {
 	link, err := s.LinkRepository.GetByHash(req.Hash)
 	if err != nil {
-		return &pb.GetLinkByHashResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.NotFound),
-				Message: err.Error(),
-			},
-		}, status.Errorf(codes.NotFound, ErrLinkNotFound, err)
+		logger.Errorf("failed to get by hash: %v", err)
+		return nil, status.Errorf(codes.NotFound, ErrLinkNotFound, err)
 	}
 	return &pb.GetLinkByHashResponse{Link: ConvertToProtoLink(link)}, nil
 }
@@ -92,12 +77,8 @@ func (s *LinkService) GetLinkByHash(ctx context.Context, req *pb.GetLinkByHashRe
 func (s *LinkService) GetById(ctx context.Context, req *pb.GetLinkByIDRequest) (*pb.GetLinkByIDResponse, error) {
 	link, err := s.LinkRepository.GetById(uint(req.Id))
 	if err != nil {
-		return &pb.GetLinkByIDResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.NotFound),
-				Message: err.Error(),
-			},
-		}, status.Errorf(codes.NotFound, ErrLinkNotFound, err)
+		logger.Errorf("failed to get by id: %v", err)
+		return nil, status.Errorf(codes.NotFound, ErrLinkNotFound, err)
 	}
 	return &pb.GetLinkByIDResponse{Link: ConvertToProtoLink(link)}, nil
 }
@@ -105,12 +86,8 @@ func (s *LinkService) GetById(ctx context.Context, req *pb.GetLinkByIDRequest) (
 func (s *LinkService) GetAllLinks(ctx context.Context, req *pb.GetAllLinksRequest) (*pb.GetAllLinksResponse, error) {
 	links, err := s.LinkRepository.GetAll(int(req.Limit), int(req.Offset), req.IncludeDeleted)
 	if err != nil {
-		return &pb.GetAllLinksResponse{
-			Error: &pb.ErrorResponse{
-				Code:    int32(codes.Internal),
-				Message: err.Error(),
-			},
-		}, status.Errorf(codes.Internal, ErrGetLinks, err)
+		logger.Errorf("failed to get all links: %v", err)
+		return nil, status.Errorf(codes.Internal, ErrGetLinks, err)
 	}
 
 	var grpcLinks []*pb.Link
