@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net"
 
 	"admin/configs"
@@ -14,6 +15,7 @@ import (
 	"admin/internal/user"
 	"admin/migrations"
 	"admin/pkg/db"
+	"admin/pkg/dlq"
 	"admin/pkg/logger"
 
 	pb "github.com/ShopOnGO/admin-proto/pkg/service"
@@ -60,6 +62,9 @@ func AdminApp() *grpc.Server {
 	pb.RegisterProductServiceServer(grpcServer, productService)
 	pb.RegisterStatServiceServer(grpcServer, statService)
 	pb.RegisterProductVariantServiceServer(grpcServer, productVariantService)
+
+	log.Println("🚀 Запуск DLQ процессора...")
+	dlq.StartDLQProcessor(conf)
 
 	return grpcServer
 }

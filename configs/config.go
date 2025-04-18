@@ -8,9 +8,14 @@ import (
 )
 
 type Config struct {
-	Db DbConfig
+	Db  DbConfig
+	Dlq DlqConfig
 }
-
+type DlqConfig struct {
+	Broker        string
+	ConsumerTopic string
+	ProducerTopic string
+}
 type DbConfig struct {
 	Dsn string
 }
@@ -24,6 +29,11 @@ func LoadConfig() *Config {
 	return &Config{
 		Db: DbConfig{
 			Dsn: os.Getenv("DSN"),
+		},
+		Dlq: DlqConfig{
+			Broker:        os.Getenv("KAFKA_BROKER"),
+			ConsumerTopic: os.Getenv("KAFKA_CONSUMER"),
+			ProducerTopic: os.Getenv("KAFKA_PRODUCER"),
 		},
 	}
 }
