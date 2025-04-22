@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 
+	kafkaService "github.com/ShopOnGO/ShopOnGO/pkg/kafkaService"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -13,15 +14,12 @@ type KafkaProducer interface {
 }
 
 type SimpleKafkaProducer struct {
-	writer *kafka.Writer
+	service *kafkaService.KafkaService
 }
 
-func NewKafkaProducer(brokers []string) *SimpleKafkaProducer {
+func NewKafkaProducer(brokers []string, topic string) *SimpleKafkaProducer {
 	return &SimpleKafkaProducer{
-		writer: &kafka.Writer{
-			Addr:     kafka.TCP(brokers...),
-			Balancer: &kafka.LeastBytes{},
-		},
+		service: kafkaService.NewProducer(brokers, topic),
 	}
 }
 
@@ -32,9 +30,9 @@ func (p *SimpleKafkaProducer) Produce(ctx context.Context, topic, key string, va
 		return err
 	}
 
-	return p.writer.WriteMessages(ctx, kafka.Message{
-		Topic: topic,
+	return p.service.ProduceMessage(ctx, kafka.Message{
 		Key:   []byte(key),
 		Value: bytes,
+		// Topic указывать нельзя, он уже зашит в Writer при создании
 	})
 }

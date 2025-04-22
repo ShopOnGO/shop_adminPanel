@@ -16,6 +16,6 @@ func NewKafkaRetrier(producer KafkaProducer, topic string) *KafkaRetrier {
 	}
 }
 
-func (r *KafkaRetrier) Retry(ctx context.Context, n Notification) error {
-	return r.Producer.Produce(ctx, r.Topic, n.ID, n) // ✅ передаём весь объект
+func (r *KafkaRetrier) RetryWithKey(ctx context.Context, key string, n Notification) error {
+	return r.Producer.Produce(ctx, r.Topic, key, n) // ✅ передаём весь объект
 }
