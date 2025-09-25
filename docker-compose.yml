@@ -5,19 +5,31 @@ services:
     build: ./
     command: ./wait-for-db.sh ./admin_panel "migrate"
     environment:
-      - POSTGRES_HOST=go_shop_postgres  # Имя существующего контейнера
-      - POSTGRES_USER=${POSTGRES_USER}   # Используйте те же переменные, что и в БД
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}      # Убедитесь, что БД существует
-      - POSTGRES_PORT=5432
+      - DSN=${DSN}
+      # - POSTGRES_HOST=go_shop_postgres
+      # - POSTGRES_USER=${POSTGRES_USER}
+      # - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      # - POSTGRES_DB=${POSTGRES_DB}
+      # - POSTGRES_PORT=5432
       - KAFKA_BROKER=${KAFKA_BROKER}
       - KAFKA_CONSUMER=${KAFKA_CONSUMER}
       - KAFKA_PRODUCER=${KAFKA_PRODUCER}
     networks:
-      - shopongo_default  # Подключение к сети существующего контейнера
+      - shopongo_default
     ports:
       - "50051:50051"
 
+client_test_container:
+  container_name: client_test_container
+  build:
+    context: ./client
+    dockerfile: Dockerfile
+  command: go run client.go
+  networks:
+    - shopongo_default
+  depends_on:
+    - admin_container
+
 networks:
   shopongo_default:
-    external: true  # Используем внешнюю сеть
+    external: true
