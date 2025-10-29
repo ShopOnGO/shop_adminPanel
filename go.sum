@@ -4,6 +4,10 @@ github.com/ShopOnGO/ShopOnGO v0.0.0-20250420135622-2e25036656c7 h1:fx11xDQ7EfZtD
 github.com/ShopOnGO/ShopOnGO v0.0.0-20250420135622-2e25036656c7/go.mod h1:GsGVCRemo8mC/jP6qgaHpGNBMRzE48Ndl247F4+Pf24=
 github.com/ShopOnGO/ShopOnGO v0.0.0-20250422181843-6a6c79c9c03b h1:yVwYeQFDWhOAQoEIV8asgKLJr9AZ7ayUG8X0ShG5UzM=
 github.com/ShopOnGO/ShopOnGO v0.0.0-20250422181843-6a6c79c9c03b/go.mod h1:GsGVCRemo8mC/jP6qgaHpGNBMRzE48Ndl247F4+Pf24=
+github.com/ShopOnGO/ShopOnGO v0.0.0-20251028192327-9ce4a3e38c52 h1:TEHf5OFkXow/jaE6zbdRJZwOjNrEygj9z+ov8GA+TPg=
+github.com/ShopOnGO/ShopOnGO v0.0.0-20251028192327-9ce4a3e38c52/go.mod h1:+XUWLw+XMnRVn51UUJ4ssWgRN4tqLL4tIosiLuQZ26E=
+github.com/ShopOnGO/ShopOnGO v0.0.0-20251029122247-7565929e2f88 h1:30HScsTz+5AILZS2+X1L+kBZuxTrSbri1cVbuD6flEs=
+github.com/ShopOnGO/ShopOnGO v0.0.0-20251029122247-7565929e2f88/go.mod h1:+XUWLw+XMnRVn51UUJ4ssWgRN4tqLL4tIosiLuQZ26E=
 github.com/ShopOnGO/admin-proto v0.0.0-20250405161041-88a0054c6c2a h1:mbtEX+Rg4i8I28uWl5corht3/s5FYpr1yCncCmP9N1E=
 github.com/ShopOnGO/admin-proto v0.0.0-20250405161041-88a0054c6c2a/go.mod h1:uczjtQeuZ6fADE/x9BHyanvSUlK+OP8X3UgSoVTVabI=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

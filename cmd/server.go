@@ -16,7 +16,8 @@ import (
 	"admin/migrations"
 	"admin/pkg/db"
 	"admin/pkg/dlq"
-	"admin/pkg/logger"
+
+	"github.com/ShopOnGO/ShopOnGO/pkg/logger"
 
 	pb "github.com/ShopOnGO/admin-proto/pkg/service"
 
@@ -26,6 +27,10 @@ import (
 func AdminApp() *grpc.Server {
 
 	conf := configs.LoadConfig()
+	consoleLvl := conf.LogLevel
+	fileLvl := conf.FileLogLevel
+	logger.InitLogger(consoleLvl, fileLvl)
+	logger.EnableFileLogging("TailorNado_admin-service")
 	db := db.NewDB(conf)
 
 	// Создаем новый gRPC-сервер

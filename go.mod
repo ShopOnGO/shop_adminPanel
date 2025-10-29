@@ -33,7 +33,7 @@ require (
 )
 
 require (
-	github.com/ShopOnGO/ShopOnGO v0.0.0-20250422181843-6a6c79c9c03b
+	github.com/ShopOnGO/ShopOnGO v0.0.0-20251029122247-7565929e2f88
 	github.com/joho/godotenv v1.5.1
 	github.com/shopspring/decimal v1.4.0
 	golang.org/x/net v0.37.0 // indirect
